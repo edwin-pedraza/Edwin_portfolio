@@ -1,6 +1,6 @@
 
 import './blog.css'
-import Header from './page/header';
+import Header from './page/Header';
 import BlogPost from './page/BlogPost';
 import Footer from './page/Footer';
 import Home from './page/Home';

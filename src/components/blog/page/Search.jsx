@@ -5,8 +5,6 @@ import { supabase } from "../../../supabase/client";
 
 
 const { data:urlBanerimg } = supabase.storage.from('Postimg').getPublicUrl('BanerPost/banner1.jpeg')
-const { data:urlprueba, error } = supabase.storage
-console.log(urlprueba, error)
 
 function Search({selectedTag}) {
     const tags=[

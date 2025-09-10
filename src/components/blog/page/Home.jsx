@@ -12,7 +12,6 @@ function Home() {
 
     useEffect(()=>{
         getPost();
-        setOrgPost();
     },[])
 
 

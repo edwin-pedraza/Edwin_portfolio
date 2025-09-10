@@ -7,6 +7,7 @@ import { FaLinkedinIn, FaReact } from "react-icons/fa";
 import {TbBrandNextjs} from "react-icons/tb"
 import {SiTailwindcss,SiFigma} from "react-icons/si"
 import {BsGithub} from "react-icons/bs"
+import { useSupabaseQuery } from "../../supabase/hooks";
 
 
 const Hero = () => {
@@ -18,6 +19,12 @@ const Hero = () => {
     deleteSpeed: 10,
     delaySpeed: 2000,
   });
+  const { data: profiles } = useSupabaseQuery('profile', { select: '*', orderBy: 'id' })
+  const profile = Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : null
+  const displayName = profile?.full_name || 'Edwin'
+  const githubUrl = profile?.github_url || 'https://github.com/edwin-pedraza'
+  const linkedinUrl = profile?.linkedin_url || 'https://www.linkedin.com/in/edwin-y-pedraza-b-/'
+
   return (
     <section className={`relative w-full h-[90vh] mx-auto`}>
       <div
@@ -31,7 +38,7 @@ const Hero = () => {
 
         <div className="basis-1/2 my-14 mx-4 sm:my-14 sm:mx-10">
           <h1 className={`${styles.heroHeadText} text-white `}>
-            Hi,{` I'm `}  <span className='text-fourth'> Edwin</span>
+            Hi,{` I'm `}  <span className='text-fourth'> {displayName}</span>
           </h1>
           <p className={`${styles.heroSubText} mt-2 text-white-100`}>
             {/* I develop Front End */}
@@ -49,11 +56,11 @@ const Hero = () => {
                 Find me in
               </h2>
               <div className="flex gap-4">
-                <a className="bannerIcon" href='https://github.com/edwin-pedraza' target= '_blank' rel='noreferrer'>
+                <a className="bannerIcon" href={githubUrl} target= '_blank' rel='noreferrer'>
                   <BsGithub />
                 </a>
                 
-                <a className="bannerIcon" href='https://www.linkedin.com/in/edwin-y-pedraza-b-/' target= '_blank' rel='noreferrer'>
+                <a className="bannerIcon" href={linkedinUrl} target= '_blank' rel='noreferrer'>
                   <FaLinkedinIn className="w-full h-full"/>
                 </a>
               </div>

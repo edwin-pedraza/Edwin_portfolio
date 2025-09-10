@@ -9,6 +9,7 @@ import "react-vertical-timeline-component/style.min.css";
 import { styles } from "../../../styles";
 import { experiences } from "../constants";
 import { SectionWrapper } from "../hoc";
+import { useSupabaseQuery, parseList } from "../../../supabase/hooks";
 
 const ExperienceCard = ({ experience }) => {
   return (
@@ -83,6 +84,25 @@ const ExperienceCard = ({ experience }) => {
 };
 
 const Experience = () => {
+  const { data: expData } = useSupabaseQuery('experience', { orderBy: 'order' })
+  const list = Array.isArray(expData) && expData.length > 0
+    ? expData.map((row) => ({
+        title: row.title,
+        company_name: row.company_name,
+        icon: row.icon_url || row.icon || undefined,
+        iconBg: row.icon_bg || '#383E56',
+        date: row.date,
+        Achievement: {
+          subtitle: row.achievement_subtitle || 'Achievements',
+          point: parseList(row.achievement_points),
+        },
+        respon: {
+          subtitle: row.respon_subtitle || 'Responsibilities',
+          point: parseList(row.respon_points),
+        },
+      }))
+    : experiences
+
   return (
     <>
       <motion.div>
@@ -97,7 +117,7 @@ const Experience = () => {
       <div className='mt-20 flex flex-col'>
 
         <VerticalTimeline>
-          {experiences.map((experience, index) => (
+          {list.map((experience, index) => (
             <ExperienceCard
               key={`experience-${index}`}
               experience={experience}

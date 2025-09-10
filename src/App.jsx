@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 
 import Blog from './components/blog/Blog';
 import Home from './Home';
+import Admin from './components/admin/Admin';
 
 const App =() => {
   
@@ -16,6 +17,7 @@ const App =() => {
       <Routes>
         <Route path='/react' element = {< Home/>}/>
         <Route path='/react/blog' element = {< Blog/>}/>
+        <Route path='/react/admin' element = {< Admin/>}/>
         {/* <Route path='/react/login' element = {< Blog/>}/> */}
       </Routes>
     </>
