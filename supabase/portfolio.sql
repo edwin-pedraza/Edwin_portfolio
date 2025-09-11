@@ -71,6 +71,7 @@ create table if not exists public.project (
   name text not null,
   description text,
   image_url text,
+  model_url text,
   source_code_link text,
   source_link_web text,
   created_at timestamptz default now()
@@ -261,4 +262,3 @@ from public.project p
 join public.tag t on t.name in ('react','CSS')
 where p.name = 'Portfolio'
 on conflict do nothing;
-

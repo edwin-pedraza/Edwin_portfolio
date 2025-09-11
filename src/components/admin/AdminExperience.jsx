@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../supabase/client'
+import ImageUploader from './ImageUploader'
 
 export default function AdminExperience() {
   const empty = { order: '', title: '', company_name: '', icon_url: '', icon_bg: '#383E56', date: '', achievement_subtitle: 'Achievements', achievement_points: '', respon_subtitle: 'Responsibilities', respon_points: '' }
@@ -8,6 +9,7 @@ export default function AdminExperience() {
   const [form, setForm] = useState(empty)
   const [editingId, setEditingId] = useState(null)
   const [msg, setMsg] = useState('')
+  const [saving, setSaving] = useState(false)
 
   async function fetchData() {
     setLoading(true)
@@ -25,6 +27,7 @@ export default function AdminExperience() {
   async function handleSave(e) {
     e.preventDefault()
     setMsg('')
+    setSaving(true)
     const payload = {
       order: form.order ? Number(form.order) : null,
       title: form.title,
@@ -39,11 +42,12 @@ export default function AdminExperience() {
     }
     if (editingId) {
       const { error } = await supabase.from('experience').update(payload).eq('id', editingId)
-      if (error) setMsg('Update failed'); else { setMsg('Updated'); setEditingId(null); setForm(empty); fetchData() }
+      if (error) setMsg(`Update failed: ${error.message}`); else { setMsg('Updated'); setEditingId(null); setForm(empty); fetchData() }
     } else {
       const { error } = await supabase.from('experience').insert(payload)
-      if (error) setMsg('Insert failed'); else { setMsg('Inserted'); setForm(empty); fetchData() }
+      if (error) setMsg(`Insert failed: ${error.message}`); else { setMsg('Inserted'); setForm(empty); fetchData() }
     }
+    setSaving(false)
   }
 
   function handleEdit(row) {
@@ -65,18 +69,21 @@ export default function AdminExperience() {
   async function handleDelete(id) {
     if (!confirm('Delete this item?')) return
     const { error } = await supabase.from('experience').delete().eq('id', id)
-    if (!error) fetchData()
+    if (error) setMsg(`Delete failed: ${error.message}`)
+    else fetchData()
   }
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Experience</h2>
+      <h2 className="text-2xl font-semibold mb-4">Experience</h2>
 
-      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-white/5 p-4 rounded-lg">
+      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/5 p-5 rounded-xl border border-white/10 shadow">
         <input className="px-3 py-2 rounded bg-white/10" placeholder="Order" value={form.order} onChange={e=>setForm({...form, order:e.target.value})} />
         <input className="px-3 py-2 rounded bg-white/10" placeholder="Title" value={form.title} onChange={e=>setForm({...form, title:e.target.value})} required />
         <input className="px-3 py-2 rounded bg-white/10" placeholder="Company Name" value={form.company_name} onChange={e=>setForm({...form, company_name:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Icon URL" value={form.icon_url} onChange={e=>setForm({...form, icon_url:e.target.value})} />
+        <div className="md:col-span-2">
+          <ImageUploader label="Icon" pathPrefix="experience" value={form.icon_url} onChange={(url)=>setForm({...form, icon_url:url})} />
+        </div>
         <input className="px-3 py-2 rounded bg-white/10" placeholder="Icon BG (#383E56)" value={form.icon_bg} onChange={e=>setForm({...form, icon_bg:e.target.value})} />
         <input className="px-3 py-2 rounded bg-white/10" placeholder="Date (e.g., 2015 - 2016)" value={form.date} onChange={e=>setForm({...form, date:e.target.value})} />
         <input className="px-3 py-2 rounded bg-white/10 md:col-span-2" placeholder="Achievement subtitle" value={form.achievement_subtitle} onChange={e=>setForm({...form, achievement_subtitle:e.target.value})} />
@@ -84,7 +91,7 @@ export default function AdminExperience() {
         <input className="px-3 py-2 rounded bg-white/10 md:col-span-2" placeholder="Responsibilities subtitle" value={form.respon_subtitle} onChange={e=>setForm({...form, respon_subtitle:e.target.value})} />
         <textarea className="px-3 py-2 rounded bg-white/10 md:col-span-2" rows={4} placeholder="One responsibility per line" value={form.respon_points} onChange={e=>setForm({...form, respon_points:e.target.value})} />
         <div className="md:col-span-2 flex gap-2">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded" type="submit">{editingId ? 'Update' : 'Create'}</button>
+          <button disabled={saving} className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white px-4 py-2 rounded" type="submit">{editingId ? (saving ? 'Updating…' : 'Update') : (saving ? 'Creating…' : 'Create')}</button>
           {editingId && <button type="button" className="px-4 py-2 rounded bg-gray-600 text-white" onClick={()=>{setEditingId(null); setForm(empty)}}>Cancel</button>}
           {msg && <div className="self-center text-sm opacity-80">{msg}</div>}
         </div>
@@ -94,11 +101,12 @@ export default function AdminExperience() {
         {loading ? (
           <div>Loading…</div>
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full text-sm rounded-xl overflow-hidden">
             <thead className="text-left opacity-80">
               <tr>
                 <th className="p-2">Order</th>
                 <th className="p-2">Title</th>
+                <th className="p-2">Icon</th>
                 <th className="p-2">Company</th>
                 <th className="p-2">Date</th>
                 <th className="p-2">Actions</th>
@@ -109,6 +117,7 @@ export default function AdminExperience() {
                 <tr key={it.id} className="border-t border-white/10">
                   <td className="p-2">{it.order}</td>
                   <td className="p-2">{it.title}</td>
+                  <td className="p-2">{it.icon_url ? <img src={it.icon_url} alt="icon" className="w-9 h-9 rounded object-cover"/> : <span className="opacity-60">—</span>}</td>
                   <td className="p-2">{it.company_name}</td>
                   <td className="p-2">{it.date}</td>
                   <td className="p-2 flex gap-2">
@@ -124,4 +133,3 @@ export default function AdminExperience() {
     </div>
   )
 }
-

@@ -4,6 +4,7 @@ import {Tilt} from "react-tilt";
 
 import { fadeIn} from "../utils/motion";
 import { github, webIcon } from "../../../assets";
+import ModelPreview from "./ModelPreview";
 import { styles } from "../../../styles";
 
 
@@ -13,6 +14,7 @@ const ProjectCard =({
   description,
   tags,
   image,
+  model_url,
   source_code_link,
   source_link_web,
 }
@@ -29,11 +31,17 @@ const ProjectCard =({
           className={`${styles.cardPadding} rounded-2xl sm:w-[360px] w-full sm:h-full`}
       >
           <div className=' relative w-full h-full'>
-            <img
-              src={image}
-              alt='project_image'
-              className={`w-full h-full object-cover rounded-2xl bg-tertiary ${styles.cardPadding}`}
-            />
+            {model_url ? (
+              <div className={`w-full h-[260px] rounded-2xl overflow-hidden bg-tertiary ${styles.cardPadding}`}>
+                <ModelPreview url={model_url} className='w-full h-full' />
+              </div>
+            ) : (
+              <img
+                src={image}
+                alt='project_image'
+                className={`w-full h-full object-cover rounded-2xl bg-tertiary ${styles.cardPadding}`}
+              />
+            )}
           
 
           <div className=' absolute inset-0 flex gap-2 justify-end m-3 card-img_hover'>

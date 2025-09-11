@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { styles } from "../../styles";
 import { navLinks } from "./constants";
+import { useSupabaseQuery } from "../../supabase/hooks";
 import { logo, menu, close } from "../../assets";
 
 
@@ -10,6 +11,10 @@ const Navbar = () => {
   const [active, setActive] = useState("");
   const [toggle, setToggle] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { data: navRows } = useSupabaseQuery('nav_link', { orderBy: 'order' })
+  const menuItems = Array.isArray(navRows) && navRows.length > 0
+    ? navRows.map((n) => ({ id: n.id, title: n.title }))
+    : navLinks
 
 
   useEffect(() => {
@@ -52,7 +57,7 @@ const Navbar = () => {
         </Link>
 
         <ul className='list-none hidden sm:flex flex-row gap-10'>
-          {navLinks.map((nav) => (
+          {menuItems.map((nav) => (
             <li
               key={nav.id}
               className={`${
@@ -87,7 +92,7 @@ const Navbar = () => {
             } p-6 black-gradient absolute top-20 right-0 mx-4 my-2 min-w-[140px] z-10 rounded-xl`}
           >
             <ul className='list-none flex justify-end items-start flex-col gap-4'>
-              {navLinks.map((nav) => (
+              {menuItems.map((nav) => (
                 <li
                   key={nav.id}
                   className={`font-poppins font-medium cursor-pointer text-[16px] ${

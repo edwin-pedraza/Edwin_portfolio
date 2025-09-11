@@ -179,8 +179,8 @@ function LogoScene({ groupRef, text = "EDWIN • DEV • DATA" }) {
 }
 
 // ---------- Componente Principal (transparente + zoom limitado) ----------
-export default function Portfolio3DModelsAlt({ height = 420 }) {
-  const [mode, setMode] = useState('laptop'); // laptop | donut | scatter | logo
+export default function Portfolio3DModelsAlt({ height = 420, initialMode = 'laptop', logoText }) {
+  const [mode, setMode] = useState(initialMode); // laptop | donut | scatter | logo
   const currentGroup = useRef();
   const getExportObject = () => currentGroup.current;
 
@@ -214,7 +214,7 @@ export default function Portfolio3DModelsAlt({ height = 420 }) {
           {mode === 'laptop' && <LaptopScene groupRef={currentGroup} />}
           {mode === 'donut' && <DonutScene groupRef={currentGroup} />}
           {mode === 'scatter' && <ScatterScene groupRef={currentGroup} />}
-          {mode === 'logo' && <LogoScene groupRef={currentGroup} />}
+          {mode === 'logo' && <LogoScene groupRef={currentGroup} text={logoText} />}
         </group>
 
         {/* Zoom súper controlado + sin pan para evitar perder encuadre */}

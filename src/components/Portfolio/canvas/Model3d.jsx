@@ -3,7 +3,8 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
 import CanvasLoader from "../Loader";
 
-const AVATAR_URL = "./planet/scene.gltf";
+// Use absolute path so it works under nested routes like /react/blog/...
+const AVATAR_URL = "/planet/scene.gltf";
 
 const Avatar = ({ isMobile }) => {
   const avatar = useGLTF(AVATAR_URL);

@@ -1,0 +1,50 @@
+import { useState } from 'react'
+import { supabase } from '../../supabase/client'
+
+const DEFAULT_BUCKET = import.meta.env.VITE_SUPABASE_BUCKET || 'portfolio'
+
+export default function ImageUploader({ label = 'Image', bucket = DEFAULT_BUCKET, pathPrefix = 'uploads', value, onChange }) {
+  const [file, setFile] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+
+  async function handleUpload() {
+    if (!file) return
+    setBusy(true)
+    setMsg('')
+    const ext = file.name.split('.').pop()
+    const filePath = `${pathPrefix}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    const { error: upErr } = await supabase.storage.from(bucket).upload(filePath, file, { upsert: true, cacheControl: '3600' })
+    if (upErr) {
+      setMsg(`Upload failed: ${upErr.message}`)
+      setBusy(false)
+      return
+    }
+    const { data } = supabase.storage.from(bucket).getPublicUrl(filePath)
+    const url = data?.publicUrl
+    if (url && onChange) onChange(url)
+    setMsg('Uploaded')
+    setBusy(false)
+    setFile(null)
+  }
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm opacity-80">{label}</label>
+      {value ? (
+        <div className="flex items-center gap-3">
+          <img src={value} alt="preview" className="w-12 h-12 rounded object-cover border border-white/10" />
+          <input className="flex-1 px-3 py-2 rounded bg-white/10" value={value} onChange={e=>onChange?.(e.target.value)} placeholder="Image URL" />
+        </div>
+      ) : (
+        <input className="w-full px-3 py-2 rounded bg-white/10" value={value || ''} onChange={e=>onChange?.(e.target.value)} placeholder="Image URL (optional)" />
+      )}
+      <div className="flex items-center gap-2">
+        <input type="file" accept="image/*" onChange={(e)=>setFile(e.target.files?.[0]||null)} className="text-sm" />
+        <button type="button" disabled={!file || busy} onClick={handleUpload} className="px-3 py-1.5 rounded bg-emerald-600 disabled:bg-emerald-600/50">{busy ? 'Uploading…' : 'Upload to Storage'}</button>
+        {msg && <span className="text-xs opacity-80">{msg}</span>}
+      </div>
+      <div className="text-xs opacity-70">Uses Supabase Storage bucket "{bucket}". Ensure it exists and is public (or add policies).</div>
+    </div>
+  )
+}

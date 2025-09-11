@@ -1,10 +1,7 @@
 import  {  useState } from 'react'
-import banner from '../../../assets/banner.jpg'
 import { IoSearchOutline } from "react-icons/io5";
 import { supabase } from "../../../supabase/client";
 
-
-const { data:urlBanerimg } = supabase.storage.from('Postimg').getPublicUrl('BanerPost/banner1.jpeg')
 
 function Search({selectedTag}) {
     const tags=[
@@ -35,9 +32,7 @@ function Search({selectedTag}) {
 
     const [activeIndex,setActiveIndex]=useState(0);
   return (
-    <div className='flex justify-center mt-8 flex-col 
-    px-[70] md:px-[150px]'>
-        <img src={urlBanerimg.publicUrl} className='rounded-2xl ' />
+    <div className='flex justify-center mt-6 flex-col px-[70] md:px-[150px]'>
        {/* <div className='bg-white shadow-lg p-3
        rounded-lg mt-[-20px] mx-[23%] flex items-center'>
             <IoSearchOutline className='text-[20px]

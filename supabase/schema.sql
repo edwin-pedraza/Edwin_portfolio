@@ -172,3 +172,8 @@ values (1,'System Test Analyst','Choucair Testing','https://.../icon.png','2015 
 insert into public.post (slug, title, excerpt, content, tag)
 values ('hello-world','Hello World','First post','Longer content here...','React');
 
+
+-- Extra profile fields used by About/Hero
+alter table if exists public.profile
+  add column if not exists about_text text,
+  add column if not exists photo_url text;

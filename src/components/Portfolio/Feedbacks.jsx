@@ -5,6 +5,7 @@ import { styles } from "../../styles";
 import { SectionWrapper } from "./hoc";
 import { fadeIn, textVariant } from "./utils/motion";
 import { testimonials } from "./constants";
+import { useSupabaseQuery } from "../../supabase/hooks";
 
 const FeedbackCard = ({
   index,
@@ -44,6 +45,17 @@ const FeedbackCard = ({
 );
 
 const Feedbacks = () => {
+  const { data: testiRows } = useSupabaseQuery('testimonial', { orderBy: 'order' })
+  const list = Array.isArray(testiRows) && testiRows.length > 0
+    ? testiRows.map((t) => ({
+        testimonial: t.testimonial,
+        name: t.name,
+        designation: t.designation,
+        company: t.company,
+        image: t.image_url || undefined,
+      }))
+    : testimonials
+
   return (
     <div className={`mt-12  bg-black-100 rounded-[20px]`}>
       <div
@@ -55,7 +67,7 @@ const Feedbacks = () => {
         </motion.div>
       </div>
       <div className={`-mt-20 pb-14 ${styles.paddingX} flex flex-col sm:flex-row gap-5`}>
-        {testimonials.map((testimonial, index) => (
+        {list.map((testimonial, index) => (
           <FeedbackCard key={testimonial.name} index={index} {...testimonial} />
         ))}
       </div>

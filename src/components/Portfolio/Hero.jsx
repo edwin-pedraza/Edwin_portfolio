@@ -7,23 +7,31 @@ import { FaLinkedinIn, FaReact } from "react-icons/fa";
 import {TbBrandNextjs} from "react-icons/tb"
 import {SiTailwindcss,SiFigma} from "react-icons/si"
 import {BsGithub} from "react-icons/bs"
-import { useSupabaseQuery } from "../../supabase/hooks";
+import { useSupabaseQuery, parseList } from "../../supabase/hooks";
 
 
 const Hero = () => {
 
+  const { data: profiles } = useSupabaseQuery('profile', { select: '*', orderBy: 'id' })
+  const { data: heroRows } = useSupabaseQuery('hero_config', { select: '*', orderBy: 'created_at' })
+  const profile = Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : null
+  const hero = Array.isArray(heroRows) && heroRows.length > 0 ? heroRows[0] : null
+  const parsed = parseList(hero?.headline_words)
+  const heroWords = (Array.isArray(parsed) && parsed.length > 0)
+    ? parsed
+    : ["Professional Coder.", "Full Stack Developer.", "UI Designer."]
   const [text] = useTypewriter({
-    words: ["Professional Coder.", "Full Stack Developer.", "UI Designer."],
+    words: heroWords,
     loop: true,
     typeSpeed: 20,
     deleteSpeed: 10,
     delaySpeed: 2000,
   });
-  const { data: profiles } = useSupabaseQuery('profile', { select: '*', orderBy: 'id' })
-  const profile = Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : null
   const displayName = profile?.full_name || 'Edwin'
   const githubUrl = profile?.github_url || 'https://github.com/edwin-pedraza'
   const linkedinUrl = profile?.linkedin_url || 'https://www.linkedin.com/in/edwin-y-pedraza-b-/'
+  const initialMode = hero?.default_mode || 'laptop'
+  const logoText = hero?.logo_text || 'EDWIN - DEV - DATA'
 
   return (
     <section className={`relative w-full h-[90vh] mx-auto`}>
@@ -95,7 +103,7 @@ const Hero = () => {
         <div className='basis-1/2 my-14 mx-4 sm:my-14 sm:mx-10'>
 
           
-          <Portfolio3DModels />
+          <Portfolio3DModels initialMode={initialMode} logoText={logoText} />
         </div>
         <StarsCanvas/>
       </div>
