@@ -23,7 +23,7 @@ export default function ImageUploader({ label = 'Image', bucket = DEFAULT_BUCKET
     const { data } = supabase.storage.from(bucket).getPublicUrl(filePath)
     const url = data?.publicUrl
     if (url && onChange) onChange(url)
-    setMsg('Uploaded')
+    setMsg('Uploaded — remember to click Update to save')
     setBusy(false)
     setFile(null)
   }

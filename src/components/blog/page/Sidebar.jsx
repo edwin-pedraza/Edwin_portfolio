@@ -1,41 +1,76 @@
-import { useMemo } from 'react'
-import { supabase } from '../../../supabase/client'
+import PropTypes from 'prop-types'
 
-export default function Sidebar({ posts = [], onSelectTag }) {
-  const { data } = supabase.storage.from('Postimg').getPublicUrl('avatar/blog-author.png')
-  const profile = null // could fetch from Supabase profile later
-  const avatar = data?.publicUrl
-  const tags = useMemo(() => Array.from(new Set(posts.map(p=>p.tag).filter(Boolean))), [posts])
+import { useMemo } from 'react'
+
+function deriveCategory(post, strategy = 'tag') {
+  if (strategy === 'title') {
+    return post?.title ? post.title.split(' ')[0] : 'General'
+  }
+  return post?.tag || 'General'
+}
+
+export default function Sidebar({ posts = [], onSelectCategory, activeCategory, strategy = 'tag', blogSettings }) {
+  const tags = useMemo(() => {
+    const base = new Set()
+    posts.forEach((post) => base.add(deriveCategory(post, strategy)))
+    return Array.from(base)
+  }, [posts, strategy])
 
   return (
-    <aside className='space-y-6'>
-      <div className='bg-white/5 border border-white/10 rounded-2xl p-5'>
-        <div className='flex items-center gap-3'>
-          {avatar ? <img src={avatar} alt='author' className='w-12 h-12 rounded-full object-cover'/> : <div className='w-12 h-12 rounded-full bg-white/10'/>}
+    <aside className="space-y-6">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-4">
+          {blogSettings?.authorAvatarUrl ? (
+            <img src={blogSettings.authorAvatarUrl} alt={blogSettings.authorName} className="h-14 w-14 rounded-full object-cover" />
+          ) : (
+            <div className="h-14 w-14 rounded-full bg-slate-200" />
+          )}
           <div>
-            <div className='text-sm opacity-80'>Author</div>
-            <div className='font-semibold'>Edwin Pedraza</div>
+            <div className="text-xs uppercase tracking-wide text-slate-500">{blogSettings?.authorTitle || 'Author'}</div>
+            <div className="text-lg font-semibold text-slate-900">{blogSettings?.authorName || 'Edwin Pedraza'}</div>
           </div>
         </div>
-        <p className='text-sm opacity-80 mt-3'>Thoughts on web, data and product. Tutorials, notes and experiments.</p>
+        <p className="mt-4 text-sm text-slate-600 leading-relaxed">{blogSettings?.authorBio || 'Thoughts on web, data and product. Tutorials, notes and experiments.'}</p>
       </div>
 
-      <div className='bg-white/5 border border-white/10 rounded-2xl p-5'>
-        <div className='font-semibold mb-3'>Categories</div>
-        <div className='flex flex-wrap gap-2'>
-          {tags.map(t => (
-            <button key={t} onClick={()=>onSelectTag?.(t)} className='px-3 py-1 rounded-full bg-white/10 hover:bg-white/15 text-sm'>{t}</button>
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="text-sm font-semibold text-slate-900">Categories</div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => onSelectCategory?.(tag)}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                tag === activeCategory ? 'bg-slate-900 text-white border-slate-900' : 'border-slate-200 text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              {tag}
+            </button>
           ))}
         </div>
       </div>
 
-      <div className='bg-white/5 border border-white/10 rounded-2xl p-5'>
-        <div className='font-semibold mb-2'>Newsletter</div>
-        <p className='text-sm opacity-80'>Get new posts in your inbox.</p>
-        <input className='w-full mt-3 px-3 py-2 rounded bg-white/10 border border-white/10' placeholder='you@example.com' />
-        <button className='mt-2 w-full px-3 py-2 rounded bg-blue-600'>Subscribe</button>
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="text-sm font-semibold text-slate-900">Newsletter</div>
+        <p className="mt-2 text-sm text-slate-600">Get new posts in your inbox, once a month.</p>
+        <input
+          className="mt-4 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
+          placeholder="you@example.com"
+        />
+        <button className="mt-3 w-full rounded-xl bg-sky-500 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-400">Subscribe</button>
       </div>
     </aside>
   )
 }
-
+Sidebar.propTypes = {
+  posts: PropTypes.arrayOf(PropTypes.object),
+  onSelectCategory: PropTypes.func,
+  activeCategory: PropTypes.string,
+  strategy: PropTypes.oneOf(['tag', 'title']),
+  blogSettings: PropTypes.shape({
+    authorAvatarUrl: PropTypes.string,
+    authorName: PropTypes.string,
+    authorTitle: PropTypes.string,
+    authorBio: PropTypes.string,
+  }),
+}

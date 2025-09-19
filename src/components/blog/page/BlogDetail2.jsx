@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../../supabase/client'
 import useBlogSettings from '../useBlogSettings'
+import ImageUploader from '../../admin/ImageUploader'
 
-export default function BlogDetail() {
+export default function BlogDetail2() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { blog: blogSettings, theme } = useBlogSettings()
@@ -13,6 +14,7 @@ export default function BlogDetail() {
   const [form, setForm] = useState({ title: '', tag: '', cover_url: '', excerpt: '', content: '' })
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
+
   const readingTime = useMemo(() => {
     const words = (form.content || post?.content || '').split(/\s+/).filter(Boolean).length
     return Math.max(1, Math.round(words / 200))
@@ -67,7 +69,7 @@ export default function BlogDetail() {
     setSaving(true)
     setMsg('')
     const payload = { title: form.title, tag: form.tag, cover_url: form.cover_url || null, excerpt: form.excerpt || null, content: form.content || null }
-    const { error } = await supabase.from('post').update(payload).eq('id', id)
+    const { data, error } = await supabase.from('post').update(payload).eq('id', id).select('id').single()
     if (error) setMsg(`Update failed: ${error.message}`)
     else {
       setMsg('Updated')
@@ -99,14 +101,14 @@ export default function BlogDetail() {
             {post.tag && <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs uppercase tracking-wider">{post.tag}</span>}
             <h1 className="mt-3 text-3xl font-semibold leading-tight md:text-4xl">{post.title}</h1>
             <div className="mt-2 text-sm opacity-90">
-              {new Date(post.published_at || post.created_at).toLocaleDateString()} � {readingTime} min read
+              {new Date(post.published_at || post.created_at).toLocaleDateString()} · {readingTime} min read
             </div>
           </div>
         </div>
       </div>
 
       <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
-        <button onClick={() => navigate('/react/blog')} className="text-sm font-medium text-sky-600 hover:text-sky-500">? Back to Blog</button>
+        <button onClick={() => navigate('/react/blog')} className="text-sm font-medium text-sky-600 hover:text-sky-500">↩ Back to Blog</button>
 
         <div className="mt-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
           <div className="text-sm text-slate-600">
@@ -124,14 +126,20 @@ export default function BlogDetail() {
         </div>
 
         {!editing ? (
-          <article className="prose prose-slate mt-8 max-w-none" dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br/>') }} />
+          <article className="prose prose-slate mt-8 max-w-none" dangerouslySetInnerHTML={{ __html: (post.content || '').replace(/\n/g, '<br/>') }} />
         ) : (
           <div className="mt-8 space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="grid gap-4 md:grid-cols-2">
               <input className="rounded-xl border border-slate-200 px-4 py-2 text-sm" placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
               <input className="rounded-xl border border-slate-200 px-4 py-2 text-sm" placeholder="Tag" value={form.tag} onChange={(e) => setForm({ ...form, tag: e.target.value })} />
             </div>
-            <input className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm" placeholder="Cover URL" value={form.cover_url} onChange={(e) => setForm({ ...form, cover_url: e.target.value })} />
+            <ImageUploader
+              label="Cover image"
+              bucket="Postimg"
+              pathPrefix="covers"
+              value={form.cover_url}
+              onChange={(value) => setForm({ ...form, cover_url: value })}
+            />
             <input className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm" placeholder="Excerpt" value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} />
             <textarea className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm" rows={12} placeholder="Content" value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} />
             <div className="flex items-center gap-3">
@@ -183,3 +191,4 @@ export default function BlogDetail() {
     </div>
   )
 }
+

@@ -130,9 +130,10 @@ begin
 end
 $$;
 
--- 5) Storage bucket for blog banner
--- Run once; creates a public bucket named Postimg
-select storage.create_bucket('Postimg', public => true);
+-- Create bucket via INSERT-if-not-exists (compatible across Storage versions)
+insert into storage.buckets (id, name, public)
+select 'Postimg', 'Postimg', true
+where not exists (select 1 from storage.buckets where id = 'Postimg');
 
 -- Public read access for objects in Postimg
 do $$

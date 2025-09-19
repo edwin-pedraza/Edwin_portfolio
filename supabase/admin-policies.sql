@@ -64,6 +64,15 @@ begin
   end if;
 end $$;
 
+-- Post (blog)
+alter table if exists public.post enable row level security;
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='post' and policyname='Auth write post') then
+    create policy "Auth write post" on public.post for all to authenticated using (true) with check (true);
+  end if;
+end $$;
+
 -- Tag
 alter table if exists public.tag enable row level security;
 do $$
@@ -88,5 +97,17 @@ do $$
 begin
   if not exists (select 1 from pg_policies where schemaname='public' and tablename='nav_link' and policyname='Auth write nav_link') then
     create policy "Auth write nav_link" on public.nav_link for all to authenticated using (true) with check (true);
+  end if;
+end $$;
+
+-- Settings
+alter table if exists public.settings enable row level security;
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='settings' and policyname='Admins manage settings') then
+    create policy "Admins manage settings" on public.settings
+      for all to authenticated
+      using (public.is_portfolio_admin())
+      with check (public.is_portfolio_admin());
   end if;
 end $$;

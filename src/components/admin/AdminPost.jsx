@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../supabase/client'
+import { listPosts, createPost, updatePost, deletePost as deletePostById } from '../../supabase/posts'
 import ImageUploader from './ImageUploader'
 
 export default function AdminPost() {
@@ -13,8 +14,8 @@ export default function AdminPost() {
 
   async function fetchData() {
     setLoading(true)
-    const { data } = await supabase.from('post').select('*').order('published_at', { ascending: false })
-    setItems(data || [])
+    const data = await listPosts()
+    setItems(data)
     setLoading(false)
   }
 
@@ -32,12 +33,21 @@ export default function AdminPost() {
       tag: form.tag || null,
       cover_url: form.cover_url || null,
     }
-    if (editingId) {
-      const { error } = await supabase.from('post').update(payload).eq('id', editingId)
-      if (error) setMsg(`Update failed: ${error.message}`); else { setMsg('Updated'); setEditingId(null); setForm(empty); fetchData() }
-    } else {
-      const { error } = await supabase.from('post').insert(payload)
-      if (error) setMsg(`Insert failed: ${error.message}`); else { setMsg('Inserted'); setForm(empty); fetchData() }
+    try {
+      if (editingId) {
+        await updatePost(editingId, payload)
+        setMsg('Updated')
+        setEditingId(null)
+        setForm(empty)
+        fetchData()
+      } else {
+        await createPost(payload)
+        setMsg('Inserted')
+        setForm(empty)
+        fetchData()
+      }
+    } catch (error) {
+      setMsg(error.message || 'Operation failed')
     }
     setSaving(false)
   }
@@ -49,9 +59,12 @@ export default function AdminPost() {
 
   async function handleDelete(id) {
     if (!confirm('Delete this post?')) return
-    const { error } = await supabase.from('post').delete().eq('id', id)
-    if (error) setMsg(`Delete failed: ${error.message}`)
-    else fetchData()
+    try {
+      await deletePostById(id)
+      fetchData()
+    } catch (error) {
+      setMsg(`Delete failed: ${error.message}`)
+    }
   }
 
   return (
@@ -106,4 +119,3 @@ export default function AdminPost() {
     </div>
   )
 }
-
