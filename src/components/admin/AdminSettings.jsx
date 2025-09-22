@@ -405,6 +405,7 @@ function BlogForm({ blogSettings, saving, accent, onPreview, onSave, onReset }) 
           bucket="Postimg"
           pathPrefix="blog-banner"
           value={inputs.bannerUrl}
+          deletePrevious
           onChange={(value) => update({ bannerUrl: value })}
         />
         <input
@@ -428,6 +429,7 @@ function BlogForm({ blogSettings, saving, accent, onPreview, onSave, onReset }) 
           bucket="Postimg"
           pathPrefix="author"
           value={inputs.authorAvatarUrl}
+          deletePrevious
           onChange={(value) => update({ authorAvatarUrl: value })}
         />
         <div className="grid gap-4 md:grid-cols-2">

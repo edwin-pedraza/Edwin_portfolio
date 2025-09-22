@@ -14,8 +14,15 @@ export default function Blog() {
   const palette = useMemo(() => buildAccentPalette(themeColors, 'light'), [themeColors])
 
   return (
-    <div style={{ backgroundColor: palette.lightShell, color: '#0f172a', minHeight: '100vh' }}>
-      <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-10 px-4 py-8 sm:px-6 lg:px-8">
+    <div
+      style={{
+        color: '#0f172a',
+        minHeight: '100vh',
+        backgroundImage: `radial-gradient(60% 60% at -10% -10%, ${palette.softer} 0%, transparent 60%), radial-gradient(50% 50% at 110% 0%, ${palette.soft} 0%, transparent 60%), linear-gradient(180deg, ${palette.lightShell} 0%, #e2e8f0 35%, ${palette.lightShell} 100%)`,
+        backgroundColor: palette.lightShell,
+      }}
+    >
+      <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-10 px-4 py-10 sm:px-6 lg:px-8">
         <Header />
         <Routes>
           <Route index element={<Home blogSettings={blogSettings} loading={loading} accent={palette} />} />

@@ -1,26 +1,32 @@
 import PropTypes from 'prop-types'
-import bannerFallback from '../../../assets/banner.jpg'
 import { getReadableTextColor } from '../../admin/themeUtils'
 
 export default function BlogHero({ blogSettings, loading, accent }) {
-  const bannerUrl = blogSettings?.bannerUrl || bannerFallback
+  const bannerUrl = blogSettings?.bannerUrl || ''
   const heading = blogSettings?.bannerHeading || 'Edwin Pedraza - Blog'
   const subheading = blogSettings?.bannerSubheading || 'Insights and updates on building useful products.'
   const accentColor = accent?.base || '#0ea5e9'
   const accentContrast = getReadableTextColor(accentColor)
 
   return (
-    <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-      <img
-        src={bannerUrl}
-        alt="Blog banner"
-        className="h-[220px] w-full object-cover md:h-[320px]"
-        loading={loading ? 'lazy' : 'eager'}
-      />
-      <div
-        className="absolute inset-0"
-        style={{ background: `linear-gradient(135deg, rgba(15, 23, 42, 0.65), ${accentColor}33)` }}
-      />
+    <div
+      className="relative w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
+      style={bannerUrl ? undefined : { background: `linear-gradient(135deg, rgba(15,23,42,0.85) 0%, ${accentColor}55 100%)` }}
+    >
+      {bannerUrl && (
+        <img
+          src={bannerUrl}
+          alt="Blog banner"
+          className="h-[220px] w-full object-cover md:h-[320px]"
+          loading={loading ? 'lazy' : 'eager'}
+        />
+      )}
+      {bannerUrl && (
+        <div
+          className="absolute inset-0"
+          style={{ background: `linear-gradient(135deg, rgba(15, 23, 42, 0.65), ${accentColor}33)` }}
+        />
+      )}
       <div className="absolute bottom-6 left-8 right-8 text-white">
         <div className="text-xs uppercase tracking-[0.3rem]" style={{ color: accentContrast }}>
           {blogSettings?.authorTitle || 'Journal'}

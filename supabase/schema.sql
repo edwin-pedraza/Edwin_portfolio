@@ -178,3 +178,31 @@ values ('hello-world','Hello World','First post','Longer content here...','React
 alter table if exists public.profile
   add column if not exists about_text text,
   add column if not exists photo_url text;
+
+-- 5) Settings (theme + blog)
+-- Stores theme and blog configuration in structured JSONB columns
+create table if not exists public.settings (
+  id uuid primary key default gen_random_uuid(),
+  theme_color text, -- legacy field (stringified JSON). Kept for backward compatibility
+  theme jsonb,      -- new structured column
+  blog jsonb,       -- new structured column
+  created_at timestamptz default now()
+);
+
+-- If table already exists, ensure new columns are present
+alter table if exists public.settings add column if not exists theme jsonb;
+alter table if exists public.settings add column if not exists blog jsonb;
+
+-- Best-effort migration from legacy theme_color -> theme/blog
+do $$
+begin
+  begin
+    update public.settings
+    set theme = coalesce(theme, (theme_color::jsonb -> 'theme')),
+        blog  = coalesce(blog,  (theme_color::jsonb -> 'blog'))
+    where theme_color is not null and theme_color <> '';
+  exception when others then
+    -- ignore if theme_color rows contain non-JSON strings
+    null;
+  end;
+end $$;

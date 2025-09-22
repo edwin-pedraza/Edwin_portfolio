@@ -62,7 +62,7 @@ export default function Home({ blogSettings, loading }) {
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`rounded-full border px-4 py-1 text-sm transition ${
-                cat === activeCategory ? 'bg-slate-900 text-white border-slate-900' : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                cat === activeCategory ? 'bg-slate-900 text-white border-slate-900 shadow' : 'border-white/60 text-slate-700 hover:border-white/70'
               }`}
             >
               {cat}

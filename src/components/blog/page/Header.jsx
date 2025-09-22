@@ -62,7 +62,7 @@ export default function Header() {
   }
 
   return (
-    <header className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-200 bg-white px-6 py-4 shadow-sm">
+    <header className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/50 bg-white/70 px-6 py-4 shadow-lg backdrop-blur">
       <div className="flex items-center gap-3">
         <img src={logo} className="w-12" alt="logo" />
         <div>
@@ -71,23 +71,23 @@ export default function Header() {
         </div>
       </div>
 
-      <nav className="flex items-center gap-4 text-sm font-medium text-slate-600">
+      <nav className="flex items-center gap-4 text-sm font-medium text-slate-700">
         {navItems.map(({ to, label, end }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
             className={({ isActive }) =>
-              `rounded-full px-3 py-1 transition ${isActive ? 'bg-slate-900 text-white' : 'hover:text-slate-900'}`
-            }
-          >
-            {label}
-          </NavLink>
-        ))}
+              `rounded-full px-3 py-1 transition ${isActive ? 'bg-slate-900 text-white shadow' : 'hover:text-slate-900'}`
+          }
+        >
+          {label}
+        </NavLink>
+      ))}
         {session && (
           <button
             onClick={() => navigate('/react/blog/create')}
-            className="rounded-full bg-sky-500 px-3 py-1 text-white shadow-sm hover:bg-sky-400"
+            className="rounded-full bg-sky-500 px-3 py-1 text-white shadow hover:bg-sky-400"
           >
             New post
           </button>
@@ -97,24 +97,24 @@ export default function Header() {
       <div className="relative flex items-center gap-3">
         <button
           onClick={handleLoginClick}
-          className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+          className="rounded-full border border-white/50 bg-white/60 px-4 py-2 text-sm font-semibold text-slate-700 backdrop-blur hover:bg-white/80"
         >
           {loginLabel}
         </button>
         {showForm && (
-          <div className="absolute right-0 top-12 w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-lg">
+          <div className="absolute right-0 top-12 w-72 rounded-2xl border border-white/50 bg-white/70 p-4 shadow-xl backdrop-blur">
             <div className="text-sm font-medium text-slate-700">Sign in with your email</div>
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
-              className="mt-3 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
+              className="mt-3 w-full rounded-xl border border-white/60 bg-white/60 px-3 py-2 text-sm backdrop-blur focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
             />
             <button
               disabled={loading || !email}
               onClick={signInWithEmail}
-              className="mt-3 w-full rounded-xl bg-sky-500 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-400 disabled:bg-sky-400/50"
+              className="mt-3 w-full rounded-xl bg-sky-500 px-3 py-2 text-sm font-semibold text-white shadow hover:bg-sky-400 disabled:bg-sky-400/50"
             >
               {loading ? 'Sending...' : 'Send link'}
             </button>

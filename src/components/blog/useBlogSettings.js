@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../supabase/client'
-import { parseSettingsPayload, DEFAULT_THEME_COLORS, DEFAULT_BLOG_SETTINGS } from '../admin/themeUtils'
+import {
+  parseSettingsPayload,
+  DEFAULT_THEME_COLORS,
+  DEFAULT_BLOG_SETTINGS,
+  normalizeThemeColors,
+  normalizeBlogSettings,
+} from '../admin/themeUtils'
 
 export default function useBlogSettings() {
   const [state, setState] = useState({ theme: DEFAULT_THEME_COLORS, blog: DEFAULT_BLOG_SETTINGS, loading: true })
@@ -10,7 +16,7 @@ export default function useBlogSettings() {
     async function load() {
       const { data, error } = await supabase
         .from('settings')
-        .select('theme_color')
+        .select('theme, blog, theme_color')
         .limit(1)
         .maybeSingle()
 
@@ -19,6 +25,13 @@ export default function useBlogSettings() {
       if (error) {
         console.warn('Could not load settings', error)
         setState({ theme: DEFAULT_THEME_COLORS, blog: DEFAULT_BLOG_SETTINGS, loading: false })
+        return
+      }
+
+      if (data?.theme || data?.blog) {
+        const theme = normalizeThemeColors(data?.theme || DEFAULT_THEME_COLORS)
+        const blog = normalizeBlogSettings(data?.blog || DEFAULT_BLOG_SETTINGS)
+        setState({ theme, blog, loading: false })
         return
       }
 

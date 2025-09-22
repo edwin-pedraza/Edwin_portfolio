@@ -18,7 +18,7 @@ export default function Sidebar({ posts = [], onSelectCategory, activeCategory, 
 
   return (
     <aside className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-white/60 bg-white/70 p-6 shadow-lg backdrop-blur">
         <div className="flex items-center gap-4">
           {blogSettings?.authorAvatarUrl ? (
             <img src={blogSettings.authorAvatarUrl} alt={blogSettings.authorName} className="h-14 w-14 rounded-full object-cover" />
@@ -33,7 +33,7 @@ export default function Sidebar({ posts = [], onSelectCategory, activeCategory, 
         <p className="mt-4 text-sm text-slate-600 leading-relaxed">{blogSettings?.authorBio || 'Thoughts on web, data and product. Tutorials, notes and experiments.'}</p>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-white/60 bg-white/70 p-6 shadow-lg backdrop-blur">
         <div className="text-sm font-semibold text-slate-900">Categories</div>
         <div className="mt-3 flex flex-wrap gap-2">
           {tags.map((tag) => (
@@ -41,7 +41,7 @@ export default function Sidebar({ posts = [], onSelectCategory, activeCategory, 
               key={tag}
               onClick={() => onSelectCategory?.(tag)}
               className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                tag === activeCategory ? 'bg-slate-900 text-white border-slate-900' : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                tag === activeCategory ? 'bg-slate-900 text-white border-slate-900 shadow' : 'border-white/60 text-slate-700 hover:border-white/70'
               }`}
             >
               {tag}
@@ -50,14 +50,14 @@ export default function Sidebar({ posts = [], onSelectCategory, activeCategory, 
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-white/60 bg-white/70 p-6 shadow-lg backdrop-blur">
         <div className="text-sm font-semibold text-slate-900">Newsletter</div>
         <p className="mt-2 text-sm text-slate-600">Get new posts in your inbox, once a month.</p>
         <input
-          className="mt-4 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
+          className="mt-4 w-full rounded-xl border border-white/60 bg-white/60 px-3 py-2 text-sm backdrop-blur focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
           placeholder="you@example.com"
         />
-        <button className="mt-3 w-full rounded-xl bg-sky-500 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-400">Subscribe</button>
+        <button className="mt-3 w-full rounded-xl bg-sky-500 px-3 py-2 text-sm font-semibold text-white shadow hover:bg-sky-400">Subscribe</button>
       </div>
     </aside>
   )

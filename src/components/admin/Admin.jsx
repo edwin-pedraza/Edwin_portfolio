@@ -194,15 +194,20 @@ export default function Admin() {
       try {
         setSettingsLoading(true)
         setSettingsError('')
-        const { data, error } = await supabase.from('settings').select('id, theme_color').limit(1)
+        const { data, error } = await supabase.from('settings').select('id, theme, blog, theme_color').limit(1)
         if (error) throw error
         const row = data?.[0]
         if (!canceled) {
           if (row) {
             setSettingsRowId(row.id)
-            const parsed = parseSettingsPayload(row.theme_color)
-            setThemeColors(parsed.theme)
-            setBlogSettings(parsed.blog)
+            if (row.theme || row.blog) {
+              setThemeColors(normalizeThemeColors(row.theme || DEFAULT_THEME_COLORS))
+              setBlogSettings(normalizeBlogSettings(row.blog || DEFAULT_BLOG_SETTINGS))
+            } else {
+              const parsed = parseSettingsPayload(row.theme_color)
+              setThemeColors(parsed.theme)
+              setBlogSettings(parsed.blog)
+            }
           } else {
             setSettingsRowId(null)
             setThemeColors({ ...DEFAULT_THEME_COLORS })
@@ -268,18 +273,18 @@ export default function Admin() {
     setSettingsError('')
 
     try {
-      const payload = serializeSettingsPayload({ theme: normalized, blog: blogSettings })
+      const payloadText = serializeSettingsPayload({ theme: normalized, blog: blogSettings })
       if (settingsRowId) {
         const { error } = await supabase
           .from('settings')
-          .update({ theme_color: payload })
+          .update({ theme: normalized, blog: blogSettings, theme_color: payloadText })
           .eq('id', settingsRowId)
         if (error) throw error
         setSettingsMsg('Theme updated')
       } else {
         const { data, error } = await supabase
           .from('settings')
-          .insert({ theme_color: payload })
+          .insert({ theme: normalized, blog: blogSettings, theme_color: payloadText })
           .select('id')
           .single()
         if (error) throw error
@@ -301,18 +306,18 @@ export default function Admin() {
     setSettingsError('')
 
     try {
-      const payload = serializeSettingsPayload({ theme: themeColors, blog: normalized })
+      const payloadText = serializeSettingsPayload({ theme: themeColors, blog: normalized })
       if (settingsRowId) {
         const { error } = await supabase
           .from('settings')
-          .update({ theme_color: payload })
+          .update({ theme: themeColors, blog: normalized, theme_color: payloadText })
           .eq('id', settingsRowId)
         if (error) throw error
         setSettingsMsg('Blog settings updated')
       } else {
         const { data, error } = await supabase
           .from('settings')
-          .insert({ theme_color: payload })
+          .insert({ theme: themeColors, blog: normalized, theme_color: payloadText })
           .select('id')
           .single()
         if (error) throw error
@@ -329,6 +334,13 @@ export default function Admin() {
   function handleResetColors() {
     const defaults = { ...DEFAULT_THEME_COLORS }
     setThemeColors(defaults)
+    setSettingsMsg('')
+    setSettingsError('')
+  }
+
+  function handleResetBlog() {
+    const defaults = { ...DEFAULT_BLOG_SETTINGS }
+    setBlogSettings(defaults)
     setSettingsMsg('')
     setSettingsError('')
   }
@@ -536,14 +548,18 @@ export default function Admin() {
                 {tab === 'settings' ? (
                   <AdminSettings
                     themeColors={themeColors}
+                    blogSettings={blogSettings}
                     accent={accent}
                     loading={settingsLoading}
                     saving={settingsSaving}
                     message={settingsMsg}
                     error={settingsError}
-                    onPreviewColors={handlePreviewColors}
-                    onSaveColors={handleSaveColors}
-                    onResetColors={handleResetColors}
+                    onPreviewTheme={handlePreviewColors}
+                    onPreviewBlog={handlePreviewBlogSettings}
+                    onSaveTheme={handleSaveColors}
+                    onSaveBlog={handleSaveBlogSettings}
+                    onResetTheme={handleResetColors}
+                    onResetBlog={handleResetBlog}
                   />
                 ) : (
                   sectionComponents[tab] ?? null
@@ -556,4 +572,3 @@ export default function Admin() {
     </div>
   )
 }
-

@@ -11,14 +11,14 @@ export default function PostsGrid({ posts = [] }) {
         <article
           key={post.id}
           onClick={() => navigate('blog-detail/' + post.id)}
-          className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+          className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/70 shadow-lg backdrop-blur transition hover:-translate-y-1 hover:shadow-xl"
         >
           {post.cover_url && <img src={post.cover_url} alt={post.title} className="h-44 w-full object-cover" />}
           <div className="flex flex-1 flex-col gap-3 p-5">
-            {post.tag && <span className="text-xs font-semibold uppercase tracking-wider text-sky-500">{post.tag}</span>}
+            {post.tag && <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">{post.tag}</span>}
             <h3 className="text-lg font-semibold text-slate-900">{post.title}</h3>
-            {post.excerpt && <p className="text-sm text-slate-600 line-clamp-3">{post.excerpt}</p>}
-            <span className="mt-auto text-xs text-slate-400">{new Date(post.published_at || post.created_at).toLocaleDateString()}</span>
+            {post.excerpt && <p className="text-sm text-slate-700 line-clamp-3">{post.excerpt}</p>}
+            <span className="mt-auto text-xs text-slate-500">{new Date(post.published_at || post.created_at).toLocaleDateString()}</span>
           </div>
         </article>
       ))}

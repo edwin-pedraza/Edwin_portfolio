@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../../supabase/client'
 import useBlogSettings from '../useBlogSettings'
 import ImageUploader from '../../admin/ImageUploader'
+import { buildAccentPalette } from '../../admin/themeUtils'
 
 export default function BlogDetail2() {
   const { id } = useParams()
@@ -20,8 +21,15 @@ export default function BlogDetail2() {
     return Math.max(1, Math.round(words / 200))
   }, [form.content, post?.content])
 
+  const accent = useMemo(() => buildAccentPalette(theme, 'light'), [theme])
+
   const [prevNext, setPrevNext] = useState({ prev: null, next: null })
   const [related, setRelated] = useState([])
+
+  const allowedAdminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '')
+    .split(',')
+    .map((v) => v.trim().toLowerCase())
+    .filter(Boolean)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -92,7 +100,14 @@ export default function BlogDetail2() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: theme.lightShell }}>
+    <div
+      className="min-h-screen"
+      style={{
+        color: '#0f172a',
+        backgroundImage: `radial-gradient(60% 60% at -10% -10%, ${accent.softer} 0%, transparent 60%), radial-gradient(50% 50% at 110% 0%, ${accent.soft} 0%, transparent 60%), linear-gradient(180deg, ${accent.lightShell} 0%, #e2e8f0 35%, ${accent.lightShell} 100%)`,
+        backgroundColor: accent.lightShell,
+      }}
+    >
       <div className="relative w-full">
         {post.cover_url && <img src={post.cover_url} alt={post.title} className="h-[260px] w-full object-cover md:h-[360px]" />}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 via-slate-900/20 to-transparent" />
@@ -107,15 +122,28 @@ export default function BlogDetail2() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
+      <div className="mx-auto max-w-5xl px-6 py-10 md:px-10 text-slate-800">
         <button onClick={() => navigate('/react/blog')} className="text-sm font-medium text-sky-600 hover:text-sky-500">↩ Back to Blog</button>
 
-        <div className="mt-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-          <div className="text-sm text-slate-600">
-            <div className="font-medium text-slate-900">{blogSettings?.authorName || 'Edwin Pedraza'}</div>
-            <div>{blogSettings?.authorTitle || 'Author'}</div>
+        <div className="mt-6 flex items-center justify-between rounded-2xl border border-white/50 bg-white/70 px-5 py-4 shadow-lg backdrop-blur">
+          <div className="flex items-center gap-4">
+            {blogSettings?.authorAvatarUrl ? (
+              <img
+                src={blogSettings.authorAvatarUrl}
+                alt={blogSettings?.authorName || 'Author avatar'}
+                className="h-12 w-12 rounded-full object-cover ring-1 ring-slate-200"
+              />
+            ) : (
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-500 ring-1 ring-slate-200">
+                {(blogSettings?.authorName || 'A')?.[0]}
+              </div>
+            )}
+            <div className="text-sm text-slate-600">
+              <div className="font-medium text-slate-900">{blogSettings?.authorName || 'Edwin Pedraza'}</div>
+              <div>{blogSettings?.authorTitle || 'Author'}</div>
+            </div>
           </div>
-          {session && (
+          {session && allowedAdminEmails.length > 0 && allowedAdminEmails.includes((session.user?.email || '').toLowerCase()) && (
             <div className="flex gap-2">
               <button onClick={() => setEditing((value) => !value)} className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">
                 {editing ? 'Close editor' : 'Edit'}
@@ -126,7 +154,13 @@ export default function BlogDetail2() {
         </div>
 
         {!editing ? (
-          <article className="prose prose-slate mt-8 max-w-none" dangerouslySetInnerHTML={{ __html: (post.content || '').replace(/\n/g, '<br/>') }} />
+          <div className="mt-8 rounded-3xl border border-white/60 bg-white/80 p-6 shadow-lg backdrop-blur-xl">
+            <article
+              className="max-w-3xl leading-7 text-slate-800"
+              style={{ color: '#0f172a' }}
+              dangerouslySetInnerHTML={{ __html: (post.content || '').replace(/\n/g, '<br/>') }}
+            />
+          </div>
         ) : (
           <div className="mt-8 space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="grid gap-4 md:grid-cols-2">
@@ -153,15 +187,49 @@ export default function BlogDetail2() {
 
         <div className="mt-12 grid gap-4 md:grid-cols-2">
           {prevNext.prev && (
-            <button onClick={() => navigate(`/react/blog/blog-detail/${prevNext.prev.id}`)} className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-left shadow-sm hover:border-slate-300">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Previous</div>
-              <div className="mt-1 font-semibold text-slate-900 line-clamp-2">{prevNext.prev.title}</div>
+            <button
+              onClick={() => navigate(`/react/blog/blog-detail/${prevNext.prev.id}`)}
+              aria-label="Previous post"
+              className="group flex items-center gap-4 rounded-2xl border border-white/50 bg-white/70 p-4 text-left shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:border-white/60 hover:shadow-xl"
+            >
+              {prevNext.prev.cover_url ? (
+                <img
+                  src={prevNext.prev.cover_url}
+                  alt={prevNext.prev.title}
+                  className="h-16 w-24 flex-none rounded-md object-cover"
+                />
+              ) : (
+                <div className="h-16 w-24 flex-none rounded-md bg-slate-100 ring-1 ring-slate-200" />
+              )}
+              <div>
+                <div className="text-xs uppercase tracking-wide text-slate-500">Previous</div>
+                <div className="mt-1 font-semibold text-slate-900 line-clamp-2 group-hover:underline">
+                  {prevNext.prev.title}
+                </div>
+              </div>
             </button>
           )}
           {prevNext.next && (
-            <button onClick={() => navigate(`/react/blog/blog-detail/${prevNext.next.id}`)} className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-right shadow-sm hover:border-slate-300">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Next</div>
-              <div className="mt-1 font-semibold text-slate-900 line-clamp-2">{prevNext.next.title}</div>
+            <button
+              onClick={() => navigate(`/react/blog/blog-detail/${prevNext.next.id}`)}
+              aria-label="Next post"
+              className="group flex items-center justify-end gap-4 rounded-2xl border border-white/50 bg-white/70 p-4 text-right shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:border-white/60 hover:shadow-xl"
+            >
+              <div className="order-2">
+                <div className="text-xs uppercase tracking-wide text-slate-500">Next</div>
+                <div className="mt-1 font-semibold text-slate-900 line-clamp-2 group-hover:underline">
+                  {prevNext.next.title}
+                </div>
+              </div>
+              {prevNext.next.cover_url ? (
+                <img
+                  src={prevNext.next.cover_url}
+                  alt={prevNext.next.title}
+                  className="order-1 h-16 w-24 flex-none rounded-md object-cover"
+                />
+              ) : (
+                <div className="order-1 h-16 w-24 flex-none rounded-md bg-slate-100 ring-1 ring-slate-200" />
+              )}
             </button>
           )}
         </div>
@@ -174,12 +242,16 @@ export default function BlogDetail2() {
                 <article
                   key={item.id}
                   onClick={() => navigate(`/react/blog/blog-detail/${item.id}`)}
-                  className="cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:-translate-y-1 hover:shadow-md"
+                  className="group cursor-pointer overflow-hidden rounded-2xl border border-white/50 bg-white/70 shadow-lg backdrop-blur transition hover:-translate-y-1 hover:border-white/60 hover:shadow-xl"
                 >
                   {item.cover_url && <img src={item.cover_url} alt={item.title} className="h-36 w-full object-cover" />}
                   <div className="space-y-2 p-4">
-                    <div className="text-xs uppercase tracking-wide text-slate-500">{item.tag}</div>
-                    <div className="font-semibold text-slate-900 line-clamp-2">{item.title}</div>
+                    {item.tag && (
+                      <span className="inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-600">
+                        {item.tag}
+                      </span>
+                    )}
+                    <div className="font-semibold text-slate-900 line-clamp-2 group-hover:underline">{item.title}</div>
                     {item.excerpt && <div className="text-sm text-slate-600 line-clamp-2">{item.excerpt}</div>}
                   </div>
                 </article>
@@ -191,4 +263,3 @@ export default function BlogDetail2() {
     </div>
   )
 }
-
