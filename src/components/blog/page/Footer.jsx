@@ -10,11 +10,21 @@ export default function Footer({ blogSettings }) {
           <div>{blogSettings?.contactLocation || 'Based in Australia. Working worldwide.'}</div>
         </div>
         <div className="flex flex-wrap gap-4">
-          {links.map((item, idx) => (
-            <a key={idx} href={item.url} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-sky-500">
-              {item.label}
-            </a>
-          ))}
+          {links.map((item, idx) => {
+            const label = (item?.label || '').trim()
+            const finalUrl = label.toLowerCase() === 'portfolio' ? '/react/' : (item?.url || '#')
+            const isExternal = /^https?:\/\//i.test(finalUrl)
+            return (
+              <a
+                key={idx}
+                href={finalUrl}
+                {...(isExternal ? { target: "_blank", rel: "noreferrer" } : {})}
+                className="text-slate-500 hover:text-sky-500"
+              >
+                {label || 'Link'}
+              </a>
+            )
+          })}
         </div>
         <div className="text-xs text-slate-400">&copy; {new Date().getFullYear()} Edwin Pedraza. All rights reserved.</div>
       </div>

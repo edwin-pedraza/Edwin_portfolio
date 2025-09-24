@@ -23,7 +23,7 @@ export default function Blog() {
       }}
     >
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-10 px-4 py-10 sm:px-6 lg:px-8">
-        <Header />
+        <Header accent={palette} />
         <Routes>
           <Route index element={<Home blogSettings={blogSettings} loading={loading} accent={palette} />} />
           <Route path="about" element={<About blogSettings={blogSettings} accent={palette} />} />

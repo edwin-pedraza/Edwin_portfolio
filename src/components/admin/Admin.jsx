@@ -28,29 +28,75 @@ const allowedAdminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '')
   .map((value) => value.trim().toLowerCase())
   .filter(Boolean)
 
-const navigationItems = [
-  { key: 'dashboard', label: 'Dashboard' },
-  { key: 'profile', label: 'Profile' },
-  { key: 'hero', label: 'Hero' },
-  { key: 'education', label: 'Education' },
-  { key: 'experience', label: 'Experience' },
-  { key: 'service', label: 'Services' },
-  { key: 'technology', label: 'Technologies' },
-  { key: 'project', label: 'Projects' },
-  { key: 'posts', label: 'Blog Posts' },
-  { key: 'testimonial', label: 'Testimonials' },
-  { key: 'settings', label: 'Settings' },
+// Centralized section metadata used by sidebar and dashboard
+const SECTION_META = [
+  { key: 'dashboard', label: 'Dashboard', description: 'Overview & quick access', actions: ['Jump to section'] },
+  { key: 'profile', label: 'Profile', description: 'Personal and contact info', actions: ['Edit profile', 'Social links'] },
+  { key: 'hero', label: 'Hero', description: 'Landing headline and CTA', actions: ['Edit headline', 'Change image'] },
+  { key: 'education', label: 'Education', description: 'Resume - Education', actions: ['Add school', 'Reorder items'] },
+  { key: 'experience', label: 'Experience', description: 'Resume - Experience', actions: ['Add role', 'Reorder items'] },
+  { key: 'service', label: 'Services', description: 'What you do', actions: ['Add service', 'Edit copy'] },
+  { key: 'technology', label: 'Technologies', description: 'Manage tech icons', actions: ['Add icon', 'Reorder grid'] },
+  { key: 'project', label: 'Projects', description: 'Manage and update projects', actions: ['Add project', 'Update links'] },
+  { key: 'posts', label: 'Blog Posts', description: 'Write and publish posts', actions: ['Write post', 'Manage tags'] },
+  { key: 'testimonial', label: 'Testimonials', description: 'Client feedback', actions: ['Add testimonial', 'Reorder items'] },
+  { key: 'settings', label: 'Settings', description: 'Adjust branding colors', actions: ['Theme colors', 'Blog settings'] },
 ]
 
-const dashboardPanels = [
-  { key: 'project', title: 'Projects', description: 'Manage and update projects' },
-  { key: 'posts', title: 'Blog Posts', description: 'Write and publish posts' },
-  { key: 'technology', title: 'Technologies', description: 'Manage tech icons' },
-  { key: 'service', title: 'Services', description: 'What you do' },
-  { key: 'education', title: 'Education', description: 'Resume - Education' },
-  { key: 'experience', title: 'Experience', description: 'Resume - Experience' },
-  { key: 'settings', title: 'Theme', description: 'Adjust branding colors' },
-]
+const navigationItems = SECTION_META.map(({ key, label }) => ({ key, label }))
+const dashboardPanels = SECTION_META.filter((s) => s.key !== 'dashboard')
+
+function SectionIcon({ name, className }) {
+  const common = 'h-5 w-5'
+  switch (name) {
+    case 'dashboard':
+      return (
+        <svg className={`${common} ${className || ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 13h8V3H3v10zM13 21h8v-8h-8v8zM13 3v6h8V3h-8zM3 21h8v-6H3v6z"/></svg>
+      )
+    case 'profile':
+      return (
+        <svg className={`${common} ${className || ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      )
+    case 'hero':
+      return (
+        <svg className={`${common} ${className || ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="6" rx="2"/><path d="M3 14h10M3 18h7"/></svg>
+      )
+    case 'education':
+      return (
+        <svg className={`${common} ${className || ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 1.5 9 1.5 12 0v-5"/></svg>
+      )
+    case 'experience':
+      return (
+        <svg className={`${common} ${className || ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+      )
+    case 'service':
+      return (
+        <svg className={`${common} ${className || ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      )
+    case 'technology':
+      return (
+        <svg className={`${common} ${className || ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M2 13h20M6 21v-4M18 21v-4"/></svg>
+      )
+    case 'project':
+      return (
+        <svg className={`${common} ${className || ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      )
+    case 'posts':
+      return (
+        <svg className={`${common} ${className || ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 4h18M3 8h18M7 12h14M7 16h10M7 20h6"/></svg>
+      )
+    case 'testimonial':
+      return (
+        <svg className={`${common} ${className || ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+      )
+    case 'settings':
+      return (
+        <svg className={`${common} ${className || ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 3.7l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c0 .66.39 1.26 1 1.51.3.12.62.18.95.18H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      )
+    default:
+      return null
+  }
+}
 
 const themeConfig = {
   light: {
@@ -162,6 +208,7 @@ export default function Admin() {
   const [settingsSaving, setSettingsSaving] = useState(false)
   const [settingsMsg, setSettingsMsg] = useState('')
   const [settingsError, setSettingsError] = useState('')
+  const [sectionStats, setSectionStats] = useState({})
 
   const sessionEmail = session?.user?.email?.toLowerCase() || ''
   const isSessionAuthorized = allowedAdminEmails.includes(sessionEmail)
@@ -220,6 +267,68 @@ export default function Admin() {
       }
     }
     loadSettings()
+    return () => { canceled = true }
+  }, [session, isSessionAuthorized])
+
+  useEffect(() => {
+    if (!session || !isSessionAuthorized) return
+    let canceled = false
+    async function countRows(table) {
+      try {
+        const { count } = await supabase.from(table).select('id', { count: 'exact', head: true })
+        return count || 0
+      } catch (_) { return 0 }
+    }
+    async function firstImage(table, columns = 'image_url') {
+      try {
+        const { data } = await supabase
+          .from(table)
+          .select(`id, ${columns}`)
+          .order('created_at', { ascending: false })
+          .limit(1)
+        const row = data?.[0]
+        if (!row) return ''
+        // prefer first non-empty field among possible names
+        const field = ['image_url','cover_url','icon_url','photo_url','banner_url']
+          .find((k) => Object.prototype.hasOwnProperty.call(row, k) && row[k])
+        return (field && row[field]) || ''
+      } catch (_) { return '' }
+    }
+    async function loadOverviewStats() {
+      const [
+        profileRow,
+        projectsCount, projectsPreview,
+        postsCount, postsPreview,
+        techCount, techPreview,
+        serviceCount, servicePreview,
+        eduCount,
+        expCount,
+        testiCount,
+      ] = await Promise.all([
+        supabase.from('profile').select('full_name, photo_url').limit(1).maybeSingle(),
+        countRows('project'), firstImage('project'),
+        countRows('post'), firstImage('post', 'cover_url'),
+        countRows('technology'), firstImage('technology', 'icon_url'),
+        countRows('service'), firstImage('service', 'icon_url'),
+        countRows('education'),
+        countRows('experience'),
+        countRows('testimonial'),
+      ])
+
+      if (canceled) return
+      const profile = profileRow?.data || null
+      setSectionStats({
+        profile: { count: profile ? 1 : 0, previewUrl: profile?.photo_url || '', subtitle: profile?.full_name || '' },
+        project: { count: projectsCount, previewUrl: projectsPreview },
+        posts: { count: postsCount, previewUrl: postsPreview },
+        technology: { count: techCount, previewUrl: techPreview },
+        service: { count: serviceCount, previewUrl: servicePreview },
+        education: { count: eduCount },
+        experience: { count: expCount },
+        testimonial: { count: testiCount },
+      })
+    }
+    loadOverviewStats()
     return () => { canceled = true }
   }, [session, isSessionAuthorized])
 
@@ -351,6 +460,20 @@ export default function Admin() {
 
   const adminConfigured = useMemo(() => allowedAdminEmails.length > 0, [])
 
+  function getUserAvatarInfo() {
+    const meta = session?.user?.user_metadata || {}
+    const emailVal = session?.user?.email || ''
+    const display = meta.full_name || meta.name || emailVal
+    const initials = (display || '')
+      .replace(/[^a-zA-Z ]/g, ' ')
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((s) => s[0]?.toUpperCase())
+      .join('') || 'EP'
+    return { avatarUrl: meta.avatar_url || meta.picture || '', initials, email: emailVal }
+  }
+
   if (!session || !isSessionAuthorized) {
     const isError = msg.toLowerCase().includes('could not') || msg.toLowerCase().includes('not authorized') || msg.toLowerCase().includes('not configured')
     return (
@@ -399,7 +522,7 @@ export default function Admin() {
       }}
     >
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-6 px-4 py-10 sm:px-6 lg:grid lg:grid-cols-[260px,1fr] lg:px-8">
-        <aside className={`hidden h-full rounded-3xl p-6 lg:flex lg:flex-col lg:gap-8 ${themeStyles.sidebar}`}>
+        <aside className={`hidden h-full rounded-3xl p-6 lg:flex lg:flex-col lg:gap-8 lg:sticky lg:top-10 ${themeStyles.sidebar}`}>
           <div className="flex items-center gap-3">
             <div
               className={`relative flex h-12 w-12 items-center justify-center rounded-2xl border p-2 shadow-sm ${themeStyles.logoRing}`}
@@ -412,7 +535,7 @@ export default function Admin() {
               <p className={`text-sm ${themeStyles.muted}`}>Manage your portfolio content</p>
             </div>
           </div>
-          <nav className="flex flex-col gap-2">
+          <nav className="flex flex-col gap-2" role="navigation" aria-label="Admin sections">
             {navigationItems.map(({ key, label }) => {
               const isActive = tab === key
               return (
@@ -427,8 +550,14 @@ export default function Admin() {
                     boxShadow: isActive ? accent.cardGlow : undefined,
                     borderColor: isActive ? accent.border : undefined,
                   }}
+                  aria-current={isActive ? 'page' : undefined}
                 >
-                  <span>{label}</span>
+                  <span className="inline-flex items-center gap-3">
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl" style={{ background: isActive ? 'rgba(255,255,255,0.15)' : 'transparent', color: isActive ? accent.baseContrast : undefined }}>
+                      <SectionIcon name={key} />
+                    </span>
+                    {label}
+                  </span>
                   {isActive && (
                     <span style={{ color: accent.baseContrast, opacity: 0.8, fontSize: '0.7rem', letterSpacing: '0.2em' }}>Active</span>
                   )}
@@ -470,6 +599,7 @@ export default function Admin() {
                           color: isActive ? accent.baseContrast : undefined,
                         }}
                         aria-pressed={isActive}
+                        aria-label={label}
                       >
                         {icon === 'sun' ? (
                           <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -486,16 +616,34 @@ export default function Admin() {
                     )
                   })}
                 </div>
-                <div className="text-left text-xs sm:text-right">
-                  <p className={`uppercase tracking-wide ${themeStyles.headerDescription}`}>Signed in as</p>
-                  <p className="font-semibold">{session?.user?.email}</p>
-                </div>
-                <button
-                  onClick={() => supabase.auth.signOut()}
-                  className="inline-flex items-center justify-center rounded-full bg-rose-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
-                >
-                  Sign out
-                </button>
+                {(() => {
+                  const { email } = getUserAvatarInfo()
+                  return (
+                    <div className="flex items-center gap-4">
+                      <div className="text-left text-xs sm:text-right">
+                        <p className={`uppercase tracking-wide ${themeStyles.headerDescription}`}>Signed in as</p>
+                        <p className="font-semibold truncate max-w-[200px] sm:max-w-[260px]" title={email}>{email}</p>
+                      </div>
+                      <button
+                        onClick={() => supabase.auth.signOut()}
+                        className="inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold shadow-sm transition hover:opacity-90 focus:outline-none focus-visible:ring-2"
+                        style={{
+                          backgroundColor: accent.button,
+                          color: accent.buttonContrast,
+                          boxShadow: accent.cardGlow,
+                        }}
+                        aria-label="Sign out"
+                      >
+                        <svg aria-hidden="true" className="mr-2 h-4 w-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" style={{ color: 'currentColor' }}>
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                          <path d="M16 17l5-5-5-5" />
+                          <path d="M21 12H9" />
+                        </svg>
+                        Sign out
+                      </button>
+                    </div>
+                  )
+                })()}
               </div>
             </div>
           </header>
@@ -517,30 +665,70 @@ export default function Admin() {
 
           <main className="flex-1 space-y-6 pb-10">
             {tab === 'dashboard' ? (
-              <section className="space-y-6">
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {dashboardPanels.map(({ key, title, description }) => (
-                    <button
-                      type="button"
-                      key={key}
-                      onClick={() => setTab(key)}
-                      className={`group flex h-full flex-col justify-between rounded-3xl border p-6 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg focus:outline-none focus-visible:ring-2 ${themeStyles.card}`}
-                      style={{ '--tw-ring-color': accent.soft }}
-                    >
-                      <div>
-                        <p className="text-sm font-medium uppercase tracking-wide" style={{ color: accent.base }}>{navigationItems.find((item) => item.key === key)?.label}</p>
-                        <h2 className={`mt-2 text-lg font-semibold ${themeStyles.cardTitle}`}>{title}</h2>
-                        <p className={`mt-1 text-sm ${themeStyles.cardDescription}`}>{description}</p>
+              <section className={`rounded-3xl p-0 ${themeStyles.contentPanel}`}>
+                <div className="border-b px-6 py-5">
+                  <h2 className="text-lg font-semibold">Overview</h2>
+                  <p className={`mt-1 text-sm ${themeStyles.cardDescription}`}>Quick access to every section, with actions.</p>
+                </div>
+                <div className="divide-y">
+                  {dashboardPanels.map(({ key, label, description, actions }) => {
+                    const stats = sectionStats[key] || {}
+                    const hasPreview = Boolean(stats.previewUrl)
+                    return (
+                    <div key={key} className="grid grid-cols-1 gap-4 px-6 py-5 sm:grid-cols-[1fr,220px,auto] sm:items-center">
+                      <div className="flex items-start gap-3">
+                        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl" style={{ background: accent.softer, color: accent.base }}>
+                          <SectionIcon name={key} />
+                        </span>
+                        <div>
+                          <div className="text-sm font-medium uppercase tracking-wide" style={{ color: accent.base }}>{label}</div>
+                          <div className={`text-base font-semibold ${themeStyles.cardTitle}`}>{label}</div>
+                          <p className={`mt-0.5 text-sm ${themeStyles.cardDescription}`}>{description}</p>
+                          {typeof stats.count === 'number' && (
+                            <div className="mt-1 text-xs opacity-70">{stats.count} item{stats.count === 1 ? '' : 's'}</div>
+                          )}
+                          {Array.isArray(actions) && actions.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {actions.slice(0, 4).map((action) => (
+                                <span
+                                  key={action}
+                                  className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs"
+                                  style={{ borderColor: accent.border, color: accent.base }}
+                                  title={action}
+                                >
+                                  <svg aria-hidden="true" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M12 5v14M5 12h14" />
+                                  </svg>
+                                  {action}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold" style={{ color: accent.base }}>
-                        Open
-                        <svg aria-hidden="true" className="h-4 w-4 transition group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-                          <path d="M5 12h14" />
-                          <path d="M12 5l7 7-7 7" />
-                        </svg>
-                      </span>
-                    </button>
-                  ))}
+                      <div className="flex items-center justify-center">
+                        {hasPreview ? (
+                          <img src={stats.previewUrl} alt={`${label} preview`} className="h-24 w-36 rounded-xl object-cover shadow" />
+                        ) : (
+                          <div className="h-24 w-36 rounded-xl border border-dashed flex items-center justify-center text-xs opacity-60">No preview</div>
+                        )}
+                      </div>
+                      <div className="sm:text-right">
+                        <button
+                          type="button"
+                          onClick={() => setTab(key)}
+                          className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition focus:outline-none focus-visible:ring-2"
+                          style={{ backgroundColor: accent.button, color: accent.buttonContrast, boxShadow: accent.cardGlow, '--tw-ring-color': accent.soft }}
+                        >
+                          Open
+                          <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+                            <path d="M5 12h14" />
+                            <path d="M12 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  )})}
                 </div>
               </section>
             ) : (

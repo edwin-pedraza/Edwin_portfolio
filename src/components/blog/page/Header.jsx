@@ -7,9 +7,10 @@ const navItems = [
   { to: '/react/blog', label: 'Home', end: true },
   { to: '/react/blog/about', label: 'About' },
   { to: '/react/blog/contact', label: 'Contact' },
+  { to: '/react/', label: 'Portfolio' },
 ]
 
-export default function Header() {
+export default function Header({ accent }) {
   const navigate = useNavigate()
   const [loginLabel, setLoginLabel] = useState('Login')
   const [showForm, setShowForm] = useState(false)
@@ -64,7 +65,15 @@ export default function Header() {
   return (
     <header className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/50 bg-white/70 px-6 py-4 shadow-lg backdrop-blur">
       <div className="flex items-center gap-3">
-        <img src={logo} className="w-12" alt="logo" />
+        <div
+          className="w-12 h-12 rounded-xl shadow flex items-center justify-center"
+          style={{
+            background: accent?.logoGradient || 'linear-gradient(135deg, #0ea5e9 0%, rgba(56,189,248,.6) 60%, #6366f1 100%)',
+            boxShadow: accent?.logoShadow || '0 20px 45px -26px rgba(56,189,248,0.12)',
+          }}
+        >
+          <img src={logo} className="w-9 h-9" alt="logo" />
+        </div>
         <div>
           <h1 className="text-lg font-semibold text-slate-900">Edwin Pedraza</h1>
           <p className="text-xs text-slate-500">Product design | Engineering | Notes</p>

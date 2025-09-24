@@ -25,7 +25,7 @@ export const DEFAULT_BLOG_SETTINGS = Object.freeze({
   contactEmail: 'hello@example.com',
   contactLocation: 'Based in Australia. Working worldwide.',
   contactLinks: [
-    { label: 'Portfolio', url: 'https://edwin-pedraza.github.io/react/' },
+    { label: 'Portfolio', url: '/react/' },
     { label: 'LinkedIn', url: 'https://linkedin.com/in/edwinpedraza' },
   ],
 })
