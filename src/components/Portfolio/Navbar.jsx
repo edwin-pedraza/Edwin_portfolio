@@ -106,6 +106,17 @@ const Navbar = () => {
                   <a href={`#${nav.id}`}>{nav.title}</a>
                 </li>
               ))}
+              <li>
+                <Link
+                  to='/react/blog'
+                  className={`font-poppins font-medium cursor-pointer text-[16px] ${
+                    active === 'Blog' ? 'text-white' : 'text-secondary'
+                  }`}
+                  onClick={() => setToggle(false)}
+                >
+                  Blog
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
