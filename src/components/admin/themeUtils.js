@@ -21,6 +21,10 @@ export const DEFAULT_BLOG_SETTINGS = Object.freeze({
   categoryStrategy: 'tag',
   aboutTitle: 'About this blog',
   aboutContent: 'I share detailed write-ups on front-end craft, system design, and the lessons I learn while building products.',
+  aboutImageUrl: '',
+  aboutLargeText: true,
+  aboutAccentBackground: false,
+  aboutEmphasis: [],
   contactHeadline: 'Let\'s build something great together.',
   contactEmail: 'hello@example.com',
   contactLocation: 'Based in Australia. Working worldwide.',
@@ -78,6 +82,17 @@ export function normalizeBlogSettings(input = DEFAULT_BLOG_SETTINGS) {
     categoryStrategy: input?.categoryStrategy === 'title' ? 'title' : 'tag',
     aboutTitle: input?.aboutTitle ? String(input.aboutTitle).trim() : DEFAULT_BLOG_SETTINGS.aboutTitle,
     aboutContent: input?.aboutContent ? String(input.aboutContent).trim() : DEFAULT_BLOG_SETTINGS.aboutContent,
+    aboutImageUrl: input?.aboutImageUrl ? String(input.aboutImageUrl).trim() : '',
+    aboutLargeText: Boolean(input?.aboutLargeText),
+    aboutAccentBackground: Boolean(input?.aboutAccentBackground),
+    aboutEmphasis: Array.isArray(input?.aboutEmphasis)
+      ? input.aboutEmphasis.map((s) => String(s).trim()).filter(Boolean)
+      : typeof input?.aboutEmphasis === 'string'
+        ? String(input.aboutEmphasis)
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [],
     contactHeadline: input?.contactHeadline ? String(input.contactHeadline).trim() : DEFAULT_BLOG_SETTINGS.contactHeadline,
     contactEmail: input?.contactEmail ? String(input.contactEmail).trim() : DEFAULT_BLOG_SETTINGS.contactEmail,
     contactLocation: input?.contactLocation ? String(input.contactLocation).trim() : DEFAULT_BLOG_SETTINGS.contactLocation,

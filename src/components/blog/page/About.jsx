@@ -1,57 +1,70 @@
 import PropTypes from 'prop-types'
 
-export default function About({ blogSettings }) {
+function highlight(text, words = [], color = '#0ea5e9') {
+  if (!text || !Array.isArray(words) || words.length === 0) return text
+  const pattern = new RegExp(`(${words.map((w)=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')})`, 'gi')
+  const parts = String(text).split(pattern)
+  return parts.map((part, idx) =>
+    words.some((w) => new RegExp(`^${w}$`, 'i').test(part))
+      ? (<span key={idx} style={{ color }}>{part}</span>)
+      : (<span key={idx}>{part}</span>)
+  )
+}
+
+export default function About({ blogSettings, accent }) {
   const about = blogSettings || {}
+  const bgStyle = about.aboutAccentBackground
+    ? { backgroundImage: `radial-gradient(60% 60% at -10% -10%, ${accent?.softer} 0%, transparent 60%), radial-gradient(50% 50% at 110% 0%, ${accent?.soft} 0%, transparent 60%)` }
+    : {}
+  const imgUrl = about.aboutImageUrl || about.authorAvatarUrl || about.bannerUrl || ''
+
+  function sanitizeHtml(html) {
+    if (!html) return ''
+    // very lightweight sanitization: strip script tags and on* handlers
+    return String(html)
+      .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+      .replace(/ on[a-z]+="[^"]*"/gi, '')
+      .replace(/ on[a-z]+='[^']*'/gi, '')
+  }
+
+  const isHtml = /<\w+[\s\S]*>/i.test(about.aboutContent || '')
+  const contentNode = isHtml ? (
+    <div
+      className={`${about.aboutLargeText ? 'text-lg md:text-xl leading-relaxed' : 'leading-relaxed'} prose prose-slate max-w-none dark:prose-invert`}
+      dangerouslySetInnerHTML={{ __html: sanitizeHtml(about.aboutContent) }}
+    />
+  ) : (
+    <p className={`${about.aboutLargeText ? 'text-lg md:text-xl leading-relaxed' : 'leading-relaxed'} text-slate-600 whitespace-pre-line`}>
+      {highlight(about.aboutContent || 'Stories about building products, refining craft, and the lessons learned along the way.', about.aboutEmphasis, accent?.base)}
+    </p>
+  )
+
   return (
-    <section className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="bg-gradient-to-r from-sky-500/15 via-indigo-500/10 to-purple-500/15 px-8 py-10 md:px-12">
+    <section className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="px-8 py-10 md:px-12" style={bgStyle}>
         <h1 className="text-3xl font-semibold text-slate-900">{about.aboutTitle || 'About this blog'}</h1>
-        <p className="mt-4 text-slate-600 leading-relaxed max-w-2xl whitespace-pre-line">
-          {about.aboutContent || 'Stories about building products, refining craft, and the lessons learned along the way.'}
-        </p>
-      </div>
-      <div className="px-8 py-10 md:px-12 flex flex-col lg:flex-row gap-10">
-        <div className="flex-1 space-y-6">
-          <h2 className="text-xl font-semibold text-slate-900">What you can expect</h2>
-          <ul className="grid gap-3 text-sm text-slate-600">
-            <li className="flex items-start gap-3">
-              <span className="mt-1 h-2 w-2 rounded-full bg-sky-500" />
-              Deep-dives on front-end architecture, performance and delightful UX.
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-1 h-2 w-2 rounded-full bg-sky-500" />
-              Product strategy notes from real-world builds and experiments.
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-1 h-2 w-2 rounded-full bg-sky-500" />
-              Behind-the-scenes updates on what I'm learning and shipping next.
-            </li>
-          </ul>
+        <div className="mt-6 grid gap-8 lg:grid-cols-[1fr,280px] lg:items-start">
+          {contentNode}
+          {imgUrl && (
+            <div className="justify-self-center lg:justify-self-end">
+              <img src={imgUrl} alt="About" className="h-52 w-52 rounded-2xl object-cover shadow-md ring-1 ring-slate-200" />
+            </div>
+          )}
         </div>
-        <aside className="lg:w-72 space-y-4">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Stay in the loop</h3>
-          <p className="text-sm text-slate-600">Subscribe for new posts, no spam. Just ideas worth building.</p>
-          <form className="space-y-3">
-            <input
-              type="email"
-              placeholder="you@example.com"
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
-            />
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-400"
-            >
-              Join the list
-            </button>
-          </form>
-        </aside>
       </div>
     </section>
   )
-}
+} 
 About.propTypes = {
   blogSettings: PropTypes.shape({
     aboutTitle: PropTypes.string,
     aboutContent: PropTypes.string,
+    aboutImageUrl: PropTypes.string,
+    aboutLargeText: PropTypes.bool,
+    aboutAccentBackground: PropTypes.bool,
+    aboutEmphasis: PropTypes.arrayOf(PropTypes.string),
+    authorAvatarUrl: PropTypes.string,
+    bannerUrl: PropTypes.string,
   }),
+  accent: PropTypes.object,
 }

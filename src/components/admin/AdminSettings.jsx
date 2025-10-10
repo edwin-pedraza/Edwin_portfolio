@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import ImageUploader from './ImageUploader'
+import RichTextEditor from './RichTextEditor'
 import {
   DEFAULT_ACCENT,
   DEFAULT_THEME_COLORS,
@@ -408,18 +409,29 @@ function BlogForm({ blogSettings, saving, accent, onPreview, onSave, onReset }) 
           deletePrevious
           onChange={(value) => update({ bannerUrl: value })}
         />
-        <input
-          value={inputs.bannerHeading}
-          onChange={(event) => update({ bannerHeading: event.target.value })}
-          placeholder="Banner heading"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
-        />
-        <input
-          value={inputs.bannerSubheading}
-          onChange={(event) => update({ bannerSubheading: event.target.value })}
-          placeholder="Banner subheading"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
-        />
+        <div className="space-y-3">
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400" htmlFor="blog-hero-heading">Banner heading</label>
+          <input
+            id="blog-hero-heading"
+            value={inputs.bannerHeading}
+            onChange={(event) => update({ bannerHeading: event.target.value })}
+            placeholder="Banner heading"
+            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-800 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
+            style={{ '--tw-ring-color': accent.soft }}
+          />
+        </div>
+        <div className="space-y-3">
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400" htmlFor="blog-hero-subheading">Banner subheading</label>
+          <textarea
+            id="blog-hero-subheading"
+            value={inputs.bannerSubheading}
+            onChange={(event) => update({ bannerSubheading: event.target.value })}
+            placeholder="Banner subheading"
+            rows={2}
+            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-800 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
+            style={{ '--tw-ring-color': accent.soft }}
+          />
+        </div>
       </section>
 
       <section className="space-y-4">
@@ -485,13 +497,51 @@ function BlogForm({ blogSettings, saving, accent, onPreview, onSave, onReset }) 
           placeholder="About page heading"
           className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
         />
-        <textarea
+        <RichTextEditor
           value={inputs.aboutContent}
-          onChange={(event) => update({ aboutContent: event.target.value })}
-          placeholder="Tell your story"
-          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
-          rows={6}
+          onChange={(html) => update({ aboutContent: html })}
+          accent={accent}
+          placeholder="Tell your story — format with the toolbar above"
         />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <ImageUploader
+              label="About image (optional)"
+              bucket="Postimg"
+              pathPrefix="about"
+              value={inputs.aboutImageUrl}
+              deletePrevious
+              onChange={(value) => update({ aboutImageUrl: value })}
+            />
+          </div>
+          <div className="space-y-3">
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Emphasis keywords (comma separated)</label>
+            <input
+              value={(inputs.aboutEmphasis || []).join(', ')}
+              onChange={(event) => update({ aboutEmphasis: event.target.value.split(',').map((s)=>s.trim()).filter(Boolean) })}
+              placeholder="Power BI, React, Supabase"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+            />
+            <div className="flex gap-4 text-sm">
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={Boolean(inputs.aboutLargeText)}
+                  onChange={(e)=>update({ aboutLargeText: e.target.checked })}
+                />
+                Large intro text
+              </label>
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={Boolean(inputs.aboutAccentBackground)}
+                  onChange={(e)=>update({ aboutAccentBackground: e.target.checked })}
+                />
+                Accent background
+              </label>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="space-y-4">
