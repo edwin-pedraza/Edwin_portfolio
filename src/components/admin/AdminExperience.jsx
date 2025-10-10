@@ -11,6 +11,10 @@ export default function AdminExperience() {
   const [msg, setMsg] = useState('')
   const [saving, setSaving] = useState(false)
 
+  const inputClass = 'w-full px-3 py-2 rounded bg-white/10 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-transparent'
+  const labelClass = 'block text-sm font-medium text-white/80'
+  const hintClass = 'mt-1 text-xs text-white/60'
+
   async function fetchData() {
     setLoading(true)
     const { data, error } = await supabase.from('experience').select('*').order('order')
@@ -77,19 +81,53 @@ export default function AdminExperience() {
     <div className="p-4">
       <h2 className="text-2xl font-semibold mb-4">Experience</h2>
 
-      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/5 p-5 rounded-xl border border-white/10 shadow">
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Order" value={form.order} onChange={e=>setForm({...form, order:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Title" value={form.title} onChange={e=>setForm({...form, title:e.target.value})} required />
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Company Name" value={form.company_name} onChange={e=>setForm({...form, company_name:e.target.value})} />
-        <div className="md:col-span-2">
-          <ImageUploader label="Icon" pathPrefix="experience" value={form.icon_url} onChange={(url)=>setForm({...form, icon_url:url})} />
+      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/5 p-6 rounded-xl border border-white/10 shadow">
+        <div>
+          <label className={labelClass} htmlFor="experience-order">Order</label>
+          <input id="experience-order" className={inputClass} placeholder="1, 2, 3" value={form.order} onChange={e=>setForm({...form, order:e.target.value})} />
+          <p className={hintClass}>Lower numbers appear first in the experience timeline.</p>
         </div>
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Icon BG (#383E56)" value={form.icon_bg} onChange={e=>setForm({...form, icon_bg:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Date (e.g., 2015 - 2016)" value={form.date} onChange={e=>setForm({...form, date:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10 md:col-span-2" placeholder="Achievement subtitle" value={form.achievement_subtitle} onChange={e=>setForm({...form, achievement_subtitle:e.target.value})} />
-        <textarea className="px-3 py-2 rounded bg-white/10 md:col-span-2" rows={4} placeholder="One achievement per line" value={form.achievement_points} onChange={e=>setForm({...form, achievement_points:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10 md:col-span-2" placeholder="Responsibilities subtitle" value={form.respon_subtitle} onChange={e=>setForm({...form, respon_subtitle:e.target.value})} />
-        <textarea className="px-3 py-2 rounded bg-white/10 md:col-span-2" rows={4} placeholder="One responsibility per line" value={form.respon_points} onChange={e=>setForm({...form, respon_points:e.target.value})} />
+        <div>
+          <label className={labelClass} htmlFor="experience-title">Title</label>
+          <input id="experience-title" className={inputClass} placeholder="Senior QA Engineer" value={form.title} onChange={e=>setForm({...form, title:e.target.value})} required />
+          <p className={hintClass}>Used as the headline for this experience card.</p>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="experience-company">Company Name</label>
+          <input id="experience-company" className={inputClass} placeholder="Company" value={form.company_name} onChange={e=>setForm({...form, company_name:e.target.value})} />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="experience-date">Date Range</label>
+          <input id="experience-date" className={inputClass} placeholder="2015 – 2016" value={form.date} onChange={e=>setForm({...form, date:e.target.value})} />
+          <p className={hintClass}>Shown under the company name (use any text that fits).</p>
+        </div>
+        <div className="md:col-span-2 space-y-2">
+          <ImageUploader label="Upload company icon" pathPrefix="experience" value={form.icon_url} onChange={(url)=>setForm({...form, icon_url:url})} />
+          <p className={hintClass}>Upload a square image or paste a URL. Leave empty to fall back to initials.</p>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="experience-icon-bg">Icon Background</label>
+          <input id="experience-icon-bg" className={inputClass} placeholder="#383E56" value={form.icon_bg} onChange={e=>setForm({...form, icon_bg:e.target.value})} />
+          <p className={hintClass}>Hex color behind the icon. Defaults to #383E56.</p>
+        </div>
+        <div className="md:col-span-2">
+          <label className={labelClass} htmlFor="experience-achievement-sub">Achievements heading</label>
+          <input id="experience-achievement-sub" className={inputClass} placeholder="Achievements" value={form.achievement_subtitle} onChange={e=>setForm({...form, achievement_subtitle:e.target.value})} />
+        </div>
+        <div className="md:col-span-2">
+          <label className={labelClass} htmlFor="experience-achievement-points">Achievements list</label>
+          <textarea id="experience-achievement-points" className={`${inputClass} min-h-[120px] resize-y`} placeholder="One achievement per line" value={form.achievement_points} onChange={e=>setForm({...form, achievement_points:e.target.value})} />
+          <p className={hintClass}>Press Enter between bullet points. Lists render as bullet points on the site.</p>
+        </div>
+        <div className="md:col-span-2">
+          <label className={labelClass} htmlFor="experience-respon-sub">Responsibilities heading</label>
+          <input id="experience-respon-sub" className={inputClass} placeholder="Responsibilities" value={form.respon_subtitle} onChange={e=>setForm({...form, respon_subtitle:e.target.value})} />
+        </div>
+        <div className="md:col-span-2">
+          <label className={labelClass} htmlFor="experience-respon-points">Responsibilities list</label>
+          <textarea id="experience-respon-points" className={`${inputClass} min-h-[120px] resize-y`} placeholder="One responsibility per line" value={form.respon_points} onChange={e=>setForm({...form, respon_points:e.target.value})} />
+          <p className={hintClass}>Optional section for daily tasks or scope. Leave empty to hide.</p>
+        </div>
         <div className="md:col-span-2 flex gap-2">
           <button disabled={saving} className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white px-4 py-2 rounded" type="submit">{editingId ? (saving ? 'Updating…' : 'Update') : (saving ? 'Creating…' : 'Create')}</button>
           {editingId && <button type="button" className="px-4 py-2 rounded bg-gray-600 text-white" onClick={()=>{setEditingId(null); setForm(empty)}}>Cancel</button>}
