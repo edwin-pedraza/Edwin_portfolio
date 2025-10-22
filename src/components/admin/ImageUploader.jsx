@@ -60,16 +60,16 @@ export default function ImageUploader({ label = 'Image', bucket = DEFAULT_BUCKET
       <label className="block text-sm opacity-80">{label}</label>
       {value ? (
         <div className="flex items-center gap-3">
-          <img src={value} alt="preview" className="w-12 h-12 rounded object-cover border border-white/10" />
-          <input className="flex-1 px-3 py-2 rounded bg-white/10" value={value} onChange={e=>onChange?.(e.target.value)} placeholder="Image URL" />
+          <img src={value} alt="preview" className="h-12 w-12 rounded object-cover ring-1 ring-slate-200" />
+          <input className="flex-1 rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 focus:border-slate-400 focus:outline-none focus:ring-2" value={value} onChange={e=>onChange?.(e.target.value)} placeholder="Image URL" />
         </div>
       ) : (
-        <input className="w-full px-3 py-2 rounded bg-white/10" value={value || ''} onChange={e=>onChange?.(e.target.value)} placeholder="Image URL (optional)" />
+        <input className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 focus:border-slate-400 focus:outline-none focus:ring-2" value={value || ''} onChange={e=>onChange?.(e.target.value)} placeholder="Image URL (optional)" />
       )}
       <div className="flex items-center gap-2">
         <input type="file" accept="image/*" onChange={(e)=>setFile(e.target.files?.[0]||null)} className="text-sm" />
-        <button type="button" disabled={!file || busy} onClick={handleUpload} className="px-3 py-1.5 rounded bg-emerald-600 disabled:bg-emerald-600/50">{busy ? 'Uploading…' : 'Upload to Storage'}</button>
-        {msg && <span className="text-xs opacity-80">{msg}</span>}
+        <button type="button" disabled={!file || busy} onClick={handleUpload} className="rounded-full bg-emerald-600 px-3 py-1.5 text-white shadow-sm disabled:bg-emerald-600/50">{busy ? 'Uploading…' : 'Upload to Storage'}</button>
+        {msg && <span className="text-xs text-slate-500">{msg}</span>}
       </div>
       <div className="text-xs opacity-70">Uses Supabase Storage bucket "{bucket}". Ensure it exists and is public (or add policies).</div>
     </div>

@@ -55,9 +55,9 @@ export default function AdminService() {
     <div className="p-4">
       <h2 className="text-2xl font-semibold mb-4 flex items-center">Services</h2>
 
-      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white/5 p-5 rounded-xl border border-white/10 shadow">
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Order" value={form.order} onChange={e=>setForm({...form, order:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10 md:col-span-2" placeholder="Title" value={form.title} onChange={e=>setForm({...form, title:e.target.value})} required />
+      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white/60 p-5 rounded-xl border border-slate-200 shadow-sm">
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="Order" value={form.order} onChange={e=>setForm({...form, order:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 md:col-span-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="Title" value={form.title} onChange={e=>setForm({...form, title:e.target.value})} required />
         <div className="md:col-span-3">
           <ImageUploader label="Icon" pathPrefix="service" value={form.icon_url} onChange={(url)=>setForm({...form, icon_url:url})} />
         </div>

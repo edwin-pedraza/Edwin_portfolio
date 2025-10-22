@@ -30,21 +30,18 @@ const allowedAdminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '')
 
 // Centralized section metadata used by sidebar and dashboard
 const SECTION_META = [
-  { key: 'dashboard', label: 'Dashboard', description: 'Overview & quick access', actions: ['Jump to section'] },
-  { key: 'profile', label: 'Profile', description: 'Personal and contact info', actions: ['Edit profile', 'Social links'] },
-  { key: 'hero', label: 'Hero', description: 'Landing headline and CTA', actions: ['Edit headline', 'Change image'] },
-  { key: 'education', label: 'Education', description: 'Resume - Education', actions: ['Add school', 'Reorder items'] },
-  { key: 'experience', label: 'Experience', description: 'Resume - Experience', actions: ['Add role', 'Reorder items'] },
-  { key: 'service', label: 'Services', description: 'What you do', actions: ['Add service', 'Edit copy'] },
-  { key: 'technology', label: 'Technologies', description: 'Manage tech icons', actions: ['Add icon', 'Reorder grid'] },
-  { key: 'project', label: 'Projects', description: 'Manage and update projects', actions: ['Add project', 'Update links'] },
-  { key: 'posts', label: 'Blog Posts', description: 'Write and publish posts', actions: ['Write post', 'Manage tags'] },
-  { key: 'testimonial', label: 'Testimonials', description: 'Client feedback', actions: ['Add testimonial', 'Reorder items'] },
-  { key: 'settings', label: 'Settings', description: 'Adjust branding colors', actions: ['Theme colors', 'Blog settings'] },
+  { key: 'dashboard', label: 'Dashboard', description: 'Overview & quick access', category: 'both', actions: ['Jump to section'] },
+  { key: 'profile', label: 'Profile', description: 'Personal and contact info', category: 'portfolio', actions: ['Edit profile', 'Social links'] },
+  { key: 'hero', label: 'Hero', description: 'Landing headline and CTA', category: 'portfolio', actions: ['Edit headline', 'Change image'] },
+  { key: 'education', label: 'Education', description: 'Resume - Education', category: 'portfolio', actions: ['Add school', 'Reorder items'] },
+  { key: 'experience', label: 'Experience', description: 'Resume - Experience', category: 'portfolio', actions: ['Add role', 'Reorder items'] },
+  { key: 'service', label: 'Services', description: 'What you do', category: 'portfolio', actions: ['Add service', 'Edit copy'] },
+  { key: 'technology', label: 'Technologies', description: 'Manage tech icons', category: 'portfolio', actions: ['Add icon', 'Reorder grid'] },
+  { key: 'project', label: 'Projects', description: 'Manage and update projects', category: 'portfolio', actions: ['Add project', 'Update links'] },
+  { key: 'posts', label: 'Blog Posts', description: 'Write and publish posts', category: 'blog', actions: ['Write post', 'Manage tags'] },
+  { key: 'testimonial', label: 'Testimonials', description: 'Client feedback', category: 'portfolio', actions: ['Add testimonial', 'Reorder items'] },
+  { key: 'settings', label: 'Settings', description: 'Adjust branding colors', category: 'both', actions: ['Theme colors', 'Blog settings'] },
 ]
-
-const navigationItems = SECTION_META.map(({ key, label }) => ({ key, label }))
-const dashboardPanels = SECTION_META.filter((s) => s.key !== 'dashboard')
 
 function SectionIcon({ name, className }) {
   const common = 'h-5 w-5'
@@ -197,6 +194,7 @@ function createAccentPalette(themeColors, theme) {
 export default function Admin() {
   const [session, setSession] = useState(null)
   const [tab, setTab] = useState('dashboard')
+  const [space, setSpace] = useState(() => localStorage.getItem('admin-space') || 'portfolio')
   const [email, setEmail] = useState('')
   const [msg, setMsg] = useState('')
   const [sending, setSending] = useState(false)
@@ -216,6 +214,14 @@ export default function Admin() {
 
   const accent = useMemo(() => createAccentPalette(themeColors, theme), [themeColors, theme])
 
+  const filteredSections = useMemo(() => SECTION_META.filter((s) =>
+    space === 'portfolio'
+      ? (s.category === 'portfolio' || s.category === 'both')
+      : (s.category === 'blog' || s.category === 'both')
+  ), [space])
+  const navigationItems = useMemo(() => filteredSections.map(({ key, label }) => ({ key, label })), [filteredSections])
+  const dashboardPanels = useMemo(() => filteredSections.filter((s) => s.key !== 'dashboard'), [filteredSections])
+
   const sectionComponents = {
     profile: <AdminProfile />,
     hero: <AdminHero />,
@@ -233,6 +239,11 @@ export default function Admin() {
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession))
     return () => authListener.subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    localStorage.setItem('admin-space', space)
+    if (!filteredSections.some((s) => s.key === tab)) setTab('dashboard')
+  }, [space, filteredSections, tab])
 
   useEffect(() => {
     if (!session || !isSessionAuthorized) return
@@ -612,6 +623,33 @@ export default function Admin() {
                           </svg>
                         )}
                         <span>{label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+                <div
+                  className={`flex items-center gap-1 rounded-full border px-1 py-1 text-xs font-medium shadow-sm transition ${themeStyles.segmented}`}
+                  style={{ '--tw-ring-color': accent.soft }}
+                >
+                  {[
+                    { key: 'portfolio', label: 'Portfolio' },
+                    { key: 'blog', label: 'Blog' },
+                  ].map(({ key, label }) => {
+                    const isActive = space === key
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setSpace(key)}
+                        className={`inline-flex items-center gap-2 rounded-full px-3 py-2 transition ${themeStyles.segmentedButton}`}
+                        style={{
+                          backgroundColor: isActive ? accent.base : 'transparent',
+                          color: isActive ? accent.baseContrast : undefined,
+                        }}
+                        aria-pressed={isActive}
+                        aria-label={label}
+                      >
+                        {label}
                       </button>
                     )
                   })}

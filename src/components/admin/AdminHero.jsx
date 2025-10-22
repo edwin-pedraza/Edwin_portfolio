@@ -51,17 +51,17 @@ export default function AdminHero() {
       {loading ? (
         <div>Loading…</div>
       ) : (
-        <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/5 p-5 rounded-xl border border-white/10 shadow">
+        <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/60 p-5 rounded-xl border border-slate-200 shadow-sm">
           <div>
             <label className="block text-sm opacity-80 mb-1">Default 3D mode</label>
-            <select className="w-full px-3 py-2 rounded bg-white/10" value={form.default_mode} onChange={e=>setForm({...form, default_mode:e.target.value})}>
+            <select className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" value={form.default_mode} onChange={e=>setForm({...form, default_mode:e.target.value})}>
               {MODES.map((m)=> (<option key={m} value={m}>{m}</option>))}
             </select>
           </div>
-          <input className="px-3 py-2 rounded bg-white/10" placeholder="Logo text (for 'logo' mode)" value={form.logo_text} onChange={e=>setForm({...form, logo_text:e.target.value})} />
+          <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="Logo text (for 'logo' mode)" value={form.logo_text} onChange={e=>setForm({...form, logo_text:e.target.value})} />
           <div className="md:col-span-2">
             <label className="block text-sm opacity-80 mb-1">Headline words (typewriter) — one per line</label>
-            <textarea className="px-3 py-2 rounded bg:white/10 bg-white/10 w-full" rows={5} value={form.headline_words} onChange={e=>setForm({...form, headline_words:e.target.value})} />
+            <textarea className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" rows={5} value={form.headline_words} onChange={e=>setForm({...form, headline_words:e.target.value})} />
           </div>
           <div className="md:col-span-2 flex gap-2">
             <button disabled={saving} className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white px-4 py-2 rounded" type="submit">{saving ? 'Saving…' : (row?.id ? 'Update' : 'Create')}</button>
@@ -72,4 +72,3 @@ export default function AdminHero() {
     </div>
   )
 }
-

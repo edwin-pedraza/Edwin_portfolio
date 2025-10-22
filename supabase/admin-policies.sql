@@ -111,3 +111,16 @@ begin
       with check (public.is_portfolio_admin());
   end if;
 end $$;
+
+-- Allow public read of blog/settings so logged-out visitors see banner/avatar
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname='public' and tablename='settings' and policyname='Public read settings'
+  ) then
+    create policy "Public read settings" on public.settings
+      for select to anon, authenticated
+      using (true);
+  end if;
+end $$;

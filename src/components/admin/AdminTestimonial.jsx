@@ -65,15 +65,15 @@ export default function AdminTestimonial() {
     <div className="p-4">
       <h2 className="text-xl font-semibold mb-4">Testimonials</h2>
 
-      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/5 p-5 rounded-xl border border-white/10 shadow">
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Order" value={form.order} onChange={e=>setForm({...form, order:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Name" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Designation" value={form.designation} onChange={e=>setForm({...form, designation:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Company" value={form.company} onChange={e=>setForm({...form, company:e.target.value})} />
+      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/60 p-5 rounded-xl border border-slate-200 shadow-sm">
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800" placeholder="Order" value={form.order} onChange={e=>setForm({...form, order:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800" placeholder="Name" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800" placeholder="Designation" value={form.designation} onChange={e=>setForm({...form, designation:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800" placeholder="Company" value={form.company} onChange={e=>setForm({...form, company:e.target.value})} />
         <div className="md:col-span-2">
           <ImageUploader label="Avatar" pathPrefix="testimonial" value={form.image_url} onChange={(url)=>setForm({...form, image_url:url})} />
         </div>
-        <textarea className="px-3 py-2 rounded bg-white/10 md:col-span-2" rows={3} placeholder="Testimonial" value={form.testimonial} onChange={e=>setForm({...form, testimonial:e.target.value})} />
+        <textarea className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 md:col-span-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" rows={3} placeholder="Testimonial" value={form.testimonial} onChange={e=>setForm({...form, testimonial:e.target.value})} />
         <div className="md:col-span-2 flex gap-2">
           <button disabled={saving} className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white px-4 py-2 rounded" type="submit">{editingId ? (saving ? 'Updating…' : 'Update') : (saving ? 'Creating…' : 'Create')}</button>
           {editingId && <button type="button" className="px-4 py-2 rounded bg-gray-600 text-white" onClick={()=>{setEditingId(null); setForm(empty)}}>Cancel</button>}

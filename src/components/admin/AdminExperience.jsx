@@ -11,9 +11,9 @@ export default function AdminExperience() {
   const [msg, setMsg] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const inputClass = 'w-full px-3 py-2 rounded bg-white/10 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-transparent'
-  const labelClass = 'block text-sm font-medium text-white/80'
-  const hintClass = 'mt-1 text-xs text-white/60'
+  const inputClass = 'w-full rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 focus:border-slate-400 focus:outline-none focus:ring-2'
+  const labelClass = 'block text-sm font-medium text-slate-700'
+  const hintClass = 'mt-1 text-xs text-slate-500'
 
   async function fetchData() {
     setLoading(true)
@@ -81,7 +81,7 @@ export default function AdminExperience() {
     <div className="p-4">
       <h2 className="text-2xl font-semibold mb-4">Experience</h2>
 
-      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/5 p-6 rounded-xl border border-white/10 shadow">
+      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/60 p-6 rounded-xl border border-slate-200 shadow-sm">
         <div>
           <label className={labelClass} htmlFor="experience-order">Order</label>
           <input id="experience-order" className={inputClass} placeholder="1, 2, 3" value={form.order} onChange={e=>setForm({...form, order:e.target.value})} />

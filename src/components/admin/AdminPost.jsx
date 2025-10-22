@@ -71,15 +71,15 @@ export default function AdminPost() {
     <div className="p-4">
       <h2 className="text-2xl font-semibold mb-4">Blog Posts</h2>
 
-      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/5 p-5 rounded-xl border border-white/10 shadow">
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Slug" value={form.slug} onChange={e=>setForm({...form, slug:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Title" value={form.title} onChange={e=>setForm({...form, title:e.target.value})} required />
-        <input className="px-3 py-2 rounded bg-white/10 md:col-span-2" placeholder="Tag" value={form.tag} onChange={e=>setForm({...form, tag:e.target.value})} />
+      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/60 p-5 rounded-xl border border-slate-200 shadow-sm">
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800" placeholder="Slug" value={form.slug} onChange={e=>setForm({...form, slug:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800" placeholder="Title" value={form.title} onChange={e=>setForm({...form, title:e.target.value})} required />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 md:col-span-2" placeholder="Tag" value={form.tag} onChange={e=>setForm({...form, tag:e.target.value})} />
         <div className="md:col-span-2">
           <ImageUploader label="Cover image" bucket="Postimg" pathPrefix="covers" value={form.cover_url} onChange={(url)=>setForm({...form, cover_url:url})} />
         </div>
-        <input className="px-3 py-2 rounded bg-white/10 md:col-span-2" placeholder="Excerpt" value={form.excerpt} onChange={e=>setForm({...form, excerpt:e.target.value})} />
-        <textarea className="px-3 py-2 rounded bg-white/10 md:col-span-2" rows={6} placeholder="Content (Markdown or HTML)" value={form.content} onChange={e=>setForm({...form, content:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 md:col-span-2" placeholder="Excerpt" value={form.excerpt} onChange={e=>setForm({...form, excerpt:e.target.value})} />
+        <textarea className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 md:col-span-2" rows={6} placeholder="Content (Markdown or HTML)" value={form.content} onChange={e=>setForm({...form, content:e.target.value})} />
         <div className="md:col-span-2 flex gap-2">
           <button disabled={saving} className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white px-4 py-2 rounded" type="submit">{editingId ? (saving ? 'Updating…' : 'Update') : (saving ? 'Creating…' : 'Create')}</button>
           {editingId && <button type="button" className="px-4 py-2 rounded bg-gray-600 text-white" onClick={()=>{setEditingId(null); setForm(empty)}}>Cancel</button>}

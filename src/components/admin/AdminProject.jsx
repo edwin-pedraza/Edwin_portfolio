@@ -101,16 +101,16 @@ export default function AdminProject() {
         <h2 className="text-xl font-semibold">Projects</h2>
       </div>
 
-      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/5 p-5 rounded-xl border border-white/10 shadow">
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Order" value={form.order} onChange={e=>setForm({...form, order:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Name" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} required />
+      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/60 p-5 rounded-xl border border-slate-200 shadow-sm">
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="Order" value={form.order} onChange={e=>setForm({...form, order:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="Name" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} required />
         <div className="md:col-span-2">
           <ImageUploader label="Project image" pathPrefix="project" value={form.image_url} onChange={(url)=>setForm({...form, image_url:url})} />
         </div>
-        <input className="px-3 py-2 rounded bg-white/10 md:col-span-2" placeholder="3D model GLB/GLTF URL (optional)" value={form.model_url} onChange={e=>setForm({...form, model_url:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Source code link" value={form.source_code_link} onChange={e=>setForm({...form, source_code_link:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10 md:col-span-2" placeholder="Live link" value={form.source_link_web} onChange={e=>setForm({...form, source_link_web:e.target.value})} />
-        <textarea className="px-3 py-2 rounded bg-white/10 md:col-span-2" rows={4} placeholder="Description" value={form.description} onChange={e=>setForm({...form, description:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 md:col-span-2 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="3D model GLB/GLTF URL (optional)" value={form.model_url} onChange={e=>setForm({...form, model_url:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="Source code link" value={form.source_code_link} onChange={e=>setForm({...form, source_code_link:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 md:col-span-2 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="Live link" value={form.source_link_web} onChange={e=>setForm({...form, source_link_web:e.target.value})} />
+        <textarea className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 md:col-span-2 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" rows={4} placeholder="Description" value={form.description} onChange={e=>setForm({...form, description:e.target.value})} />
         <div className="md:col-span-2">
           <div className="text-sm opacity-80 mb-1">Tags</div>
           <div className="flex flex-wrap gap-2">

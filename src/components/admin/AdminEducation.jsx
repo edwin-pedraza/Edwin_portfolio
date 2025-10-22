@@ -73,17 +73,17 @@ export default function AdminEducation() {
     <div className="p-4">
       <h2 className="text-2xl font-semibold mb-4">Education</h2>
 
-      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/5 p-5 rounded-xl border border-white/10 shadow">
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Order" value={form.order} onChange={e=>setForm({...form, order:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Title" value={form.title} onChange={e=>setForm({...form, title:e.target.value})} required />
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Company Name" value={form.company_name} onChange={e=>setForm({...form, company_name:e.target.value})} />
+      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/60 p-5 rounded-xl border border-slate-200 shadow-sm">
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="Order" value={form.order} onChange={e=>setForm({...form, order:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="Title" value={form.title} onChange={e=>setForm({...form, title:e.target.value})} required />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="Company Name" value={form.company_name} onChange={e=>setForm({...form, company_name:e.target.value})} />
         <div className="md:col-span-2">
           <ImageUploader label="Icon" pathPrefix="education" value={form.icon_url} onChange={(url)=>setForm({...form, icon_url:url})} />
         </div>
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Icon BG (#383E56)" value={form.icon_bg} onChange={e=>setForm({...form, icon_bg:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10" placeholder="Date (e.g., 2010 - 2014)" value={form.date} onChange={e=>setForm({...form, date:e.target.value})} />
-        <input className="px-3 py-2 rounded bg-white/10 md:col-span-2" placeholder="Achievement subtitle" value={form.achievement_subtitle} onChange={e=>setForm({...form, achievement_subtitle:e.target.value})} />
-        <textarea className="px-3 py-2 rounded bg-white/10 md:col-span-2" rows={4} placeholder="One achievement per line" value={form.achievement_points} onChange={e=>setForm({...form, achievement_points:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="Icon BG (#383E56)" value={form.icon_bg} onChange={e=>setForm({...form, icon_bg:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="Date (e.g., 2010 - 2014)" value={form.date} onChange={e=>setForm({...form, date:e.target.value})} />
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 md:col-span-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" placeholder="Achievement subtitle" value={form.achievement_subtitle} onChange={e=>setForm({...form, achievement_subtitle:e.target.value})} />
+        <textarea className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 md:col-span-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100" rows={4} placeholder="One achievement per line" value={form.achievement_points} onChange={e=>setForm({...form, achievement_points:e.target.value})} />
         <div className="md:col-span-2 flex gap-2">
           <button disabled={saving} className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white px-4 py-2 rounded" type="submit">{editingId ? (saving ? 'Updating…' : 'Update') : (saving ? 'Creating…' : 'Create')}</button>
           {editingId && <button type="button" className="px-4 py-2 rounded bg-gray-600 text-white" onClick={()=>{setEditingId(null); setForm(empty)}}>Cancel</button>}
