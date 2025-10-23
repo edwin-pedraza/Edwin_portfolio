@@ -1,9 +1,12 @@
+import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
-import { supabase } from '../../supabase/client'
 import { listPosts, createPost, updatePost, deletePost as deletePostById } from '../../supabase/posts'
+import { supabase } from '../../supabase/client'
+import sanitizeHtml from '../../utils/sanitizeHtml'
 import ImageUploader from './ImageUploader'
+import RichTextEditor from './RichTextEditor'
 
-export default function AdminPost() {
+export default function AdminPost({ accent }) {
   const empty = { slug: '', title: '', excerpt: '', content: '', tag: '', cover_url: '' }
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -29,7 +32,7 @@ export default function AdminPost() {
       slug: form.slug || null,
       title: form.title || null,
       excerpt: form.excerpt || null,
-      content: form.content || null,
+      content: sanitizeHtml(form.content) || null,
       tag: form.tag || null,
       cover_url: form.cover_url || null,
     }
@@ -54,7 +57,14 @@ export default function AdminPost() {
 
   function handleEdit(row) {
     setEditingId(row.id)
-    setForm({ slug: row.slug || '', title: row.title || '', excerpt: row.excerpt || '', content: row.content || '', tag: row.tag || '', cover_url: row.cover_url || '' })
+    setForm({
+      slug: row.slug || '',
+      title: row.title || '',
+      excerpt: row.excerpt || '',
+      content: sanitizeHtml(row.content || ''),
+      tag: row.tag || '',
+      cover_url: row.cover_url || '',
+    })
   }
 
   async function handleDelete(id) {
@@ -79,7 +89,15 @@ export default function AdminPost() {
           <ImageUploader label="Cover image" bucket="Postimg" pathPrefix="covers" value={form.cover_url} onChange={(url)=>setForm({...form, cover_url:url})} />
         </div>
         <input className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 md:col-span-2" placeholder="Excerpt" value={form.excerpt} onChange={e=>setForm({...form, excerpt:e.target.value})} />
-        <textarea className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 md:col-span-2" rows={6} placeholder="Content (Markdown or HTML)" value={form.content} onChange={e=>setForm({...form, content:e.target.value})} />
+        <div className="md:col-span-2 space-y-2">
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">Post body</label>
+          <RichTextEditor
+            value={form.content}
+            onChange={(html)=>setForm({...form, content: html})}
+            accent={accent}
+            placeholder="Write, format, and link content. Use the toolbar above to style your post."
+          />
+        </div>
         <div className="md:col-span-2 flex gap-2">
           <button disabled={saving} className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white px-4 py-2 rounded" type="submit">{editingId ? (saving ? 'Updating…' : 'Update') : (saving ? 'Creating…' : 'Create')}</button>
           {editingId && <button type="button" className="px-4 py-2 rounded bg-gray-600 text-white" onClick={()=>{setEditingId(null); setForm(empty)}}>Cancel</button>}
@@ -118,4 +136,8 @@ export default function AdminPost() {
       </div>
     </div>
   )
+}
+
+AdminPost.propTypes = {
+  accent: PropTypes.object,
 }

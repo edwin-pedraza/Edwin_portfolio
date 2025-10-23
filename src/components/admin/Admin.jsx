@@ -230,7 +230,7 @@ export default function Admin() {
     service: <AdminService />,
     technology: <AdminTechnology />,
     project: <AdminProject />,
-    posts: <AdminPost />,
+    posts: <AdminPost accent={accent} />,
     testimonial: <AdminTestimonial />,
   }
 

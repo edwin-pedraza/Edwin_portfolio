@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import sanitizeHtml from '../../../utils/sanitizeHtml'
 
 function highlight(text, words = [], color = '#0ea5e9') {
   if (!text || !Array.isArray(words) || words.length === 0) return text
@@ -17,15 +18,6 @@ export default function About({ blogSettings, accent }) {
     ? { backgroundImage: `radial-gradient(60% 60% at -10% -10%, ${accent?.softer} 0%, transparent 60%), radial-gradient(50% 50% at 110% 0%, ${accent?.soft} 0%, transparent 60%)` }
     : {}
   const imgUrl = about.aboutImageUrl || about.authorAvatarUrl || about.bannerUrl || ''
-
-  function sanitizeHtml(html) {
-    if (!html) return ''
-    // very lightweight sanitization: strip script tags and on* handlers
-    return String(html)
-      .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
-      .replace(/ on[a-z]+="[^"]*"/gi, '')
-      .replace(/ on[a-z]+='[^']*'/gi, '')
-  }
 
   const isHtml = /<\w+[\s\S]*>/i.test(about.aboutContent || '')
   const contentNode = isHtml ? (
