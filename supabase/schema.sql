@@ -110,10 +110,16 @@ create table if not exists public.post (
   content text,
   tag text,
   cover_url text,
+  project_url text,
+  gallery_urls jsonb default '[]'::jsonb,
   author_id uuid references public.profile(id) on delete set null,
   published_at timestamptz default now(),
   created_at timestamptz default now()
 );
+
+alter table if exists public.post
+  add column if not exists project_url text,
+  add column if not exists gallery_urls jsonb default '[]'::jsonb;
 
 alter table public.post enable row level security;
 do $$

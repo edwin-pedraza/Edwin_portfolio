@@ -1,3 +1,5 @@
+import typography from "@tailwindcss/typography"
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./src/**/*.{js,jsx}"],
@@ -31,6 +33,6 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [typography],
 }
 

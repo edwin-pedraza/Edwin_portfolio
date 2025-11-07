@@ -7,6 +7,15 @@ import ImageUploader from '../../admin/ImageUploader'
 import RichTextEditor from '../../admin/RichTextEditor'
 import { buildAccentPalette } from '../../admin/themeUtils'
 
+const MAX_GALLERY_IMAGES = 3
+
+function normalizeExternalUrl(url) {
+  if (!url) return ''
+  const trimmed = url.trim()
+  if (!trimmed) return ''
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+}
+
 export default function BlogDetail2() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -14,7 +23,8 @@ export default function BlogDetail2() {
   const [post, setPost] = useState(null)
   const [session, setSession] = useState(null)
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ title: '', tag: '', cover_url: '', excerpt: '', content: '' })
+  const [form, setForm] = useState({ title: '', tag: '', cover_url: '', excerpt: '', content: '', project_url: '', gallery_urls: [] })
+  const [galleryIndex, setGalleryIndex] = useState(0)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
 
@@ -27,6 +37,7 @@ export default function BlogDetail2() {
 
   const accent = useMemo(() => buildAccentPalette(theme, 'light'), [theme])
   const safePostContent = useMemo(() => sanitizeHtml(post?.content || ''), [post?.content])
+  const galleryList = useMemo(() => (Array.isArray(form.gallery_urls) ? form.gallery_urls.slice(0, MAX_GALLERY_IMAGES) : []), [form.gallery_urls])
 
   const [prevNext, setPrevNext] = useState({ prev: null, next: null })
   const [related, setRelated] = useState([])
@@ -45,13 +56,16 @@ export default function BlogDetail2() {
       const { data } = await supabase.from('post').select('*').eq('id', id).single()
       if (data) {
         const cleanContent = sanitizeHtml(data.content || '')
-        setPost({ ...data, content: cleanContent })
+        const gallery = Array.isArray(data.gallery_urls) ? data.gallery_urls.slice(0, MAX_GALLERY_IMAGES) : []
+        setPost({ ...data, content: cleanContent, gallery_urls: gallery })
         setForm({
           title: data.title || '',
           tag: data.tag || '',
           cover_url: data.cover_url || '',
           excerpt: data.excerpt || '',
           content: cleanContent,
+          project_url: data.project_url || '',
+          gallery_urls: gallery,
         })
 
         if (data.published_at) {
@@ -93,12 +107,16 @@ export default function BlogDetail2() {
     setSaving(true)
     setMsg('')
     const cleanContent = sanitizeHtml(form.content)
+    const gallery = galleryList.map((url) => (url || '').trim()).filter(Boolean)
+    const projectLink = normalizeExternalUrl(form.project_url || '')
     const payload = {
       title: form.title,
       tag: form.tag,
       cover_url: form.cover_url || null,
       excerpt: form.excerpt || null,
       content: cleanContent || null,
+      project_url: projectLink || null,
+      gallery_urls: gallery,
     }
     const { error } = await supabase.from('post').update(payload).eq('id', id)
     if (error) {
@@ -117,11 +135,65 @@ export default function BlogDetail2() {
     if (!error) navigate('/react/blog')
   }
 
-  if (!post) {
-    return <div className="min-h-screen bg-slate-100 px-6 py-10 text-center text-slate-500">Loading...</div>
+  function addGalleryImageSlot() {
+    setForm((prev) => {
+      const current = Array.isArray(prev.gallery_urls) ? prev.gallery_urls : []
+      if (current.length >= MAX_GALLERY_IMAGES) return prev
+      return { ...prev, gallery_urls: [...current, ''] }
+    })
+  }
+
+  function updateGalleryImageSlot(index, value) {
+    setForm((prev) => {
+      const current = Array.isArray(prev.gallery_urls) ? prev.gallery_urls : []
+      if (index < 0 || index >= current.length) return prev
+      const next = [...current]
+      next[index] = value
+      return { ...prev, gallery_urls: next }
+    })
+  }
+
+  function removeGalleryImageSlot(index) {
+    setForm((prev) => {
+      const current = Array.isArray(prev.gallery_urls) ? prev.gallery_urls : []
+      if (index < 0 || index >= current.length) return prev
+      const next = current.filter((_, idx) => idx !== index)
+      return { ...prev, gallery_urls: next }
+    })
+  }
+
+  function cycleGallery(direction) {
+    setGalleryIndex((prev) => {
+      if (postGallery.length === 0) return 0
+      const next = (prev + direction + postGallery.length) % postGallery.length
+      return next
+    })
   }
 
   const canEdit = session && allowedAdminEmails.length > 0 && allowedAdminEmails.includes((session.user?.email || '').toLowerCase())
+  const postGallery = Array.isArray(post?.gallery_urls)
+    ? post.gallery_urls
+        .filter((url) => typeof url === 'string' && url.trim().length > 0)
+        .slice(0, MAX_GALLERY_IMAGES)
+    : []
+
+  useEffect(() => {
+    setGalleryIndex(0)
+  }, [post?.id])
+
+  useEffect(() => {
+    if (postGallery.length === 0) {
+      setGalleryIndex(0)
+    } else if (galleryIndex >= postGallery.length) {
+      setGalleryIndex(0)
+    }
+  }, [postGallery.length, galleryIndex])
+
+  const projectLink = post?.project_url ? normalizeExternalUrl(post.project_url) : ''
+
+  if (!post) {
+    return <div className="min-h-screen bg-slate-100 px-6 py-10 text-center text-slate-500">Loading...</div>
+  }
 
   return (
     <div
@@ -167,12 +239,94 @@ export default function BlogDetail2() {
         </div>
 
         {!editing ? (
-          <article className="prose prose-slate mt-8 max-w-none" dangerouslySetInnerHTML={{ __html: safePostContent }} />
+          <>
+            {post.excerpt && (
+              <div className="mt-8 rounded-3xl border border-white/70 bg-white/90 p-6 text-lg font-medium leading-relaxed text-slate-700 shadow-xl shadow-slate-900/5 backdrop-blur">
+                <p className="text-slate-800">{post.excerpt}</p>
+              </div>
+            )}
+
+            {projectLink && (
+              <a
+                href={projectLink}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex w-full items-center justify-between rounded-3xl border border-slate-900/10 bg-slate-900 px-6 py-4 text-white shadow-xl shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-slate-800"
+              >
+                <div>
+                  <div className="text-xs uppercase tracking-[0.2em] text-white/70">Project link</div>
+                  <div className="mt-1 text-lg font-semibold">View the live admin experience</div>
+                </div>
+                <span aria-hidden className="text-2xl">↗</span>
+              </a>
+            )}
+
+            {postGallery.length > 0 && (
+              <div className="mt-6">
+                <div className="relative overflow-hidden rounded-3xl border border-white/80 bg-white/90 shadow-lg shadow-slate-900/5">
+                  <img
+                    src={postGallery[galleryIndex]}
+                    alt={`Project showcase ${galleryIndex + 1}`}
+                    loading="lazy"
+                    className="h-64 w-full object-cover md:h-80 lg:h-[360px]"
+                  />
+                  {postGallery.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => cycleGallery(-1)}
+                        className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-semibold text-slate-900 shadow-xl shadow-slate-900/10 transition hover:-translate-y-1/2 hover:bg-white"
+                        aria-label="Previous gallery image"
+                      >
+                        <span aria-hidden>&lsaquo;</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => cycleGallery(1)}
+                        className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-semibold text-slate-900 shadow-xl shadow-slate-900/10 transition hover:-translate-y-1/2 hover:bg-white"
+                        aria-label="Next gallery image"
+                      >
+                        <span aria-hidden>&rsaquo;</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+                {postGallery.length > 1 && (
+                  <div className="mt-3 flex justify-center gap-2">
+                    {postGallery.map((_, idx) => (
+                      <button
+                        key={`gallery-dot-${idx}`}
+                        type="button"
+                        onClick={() => setGalleryIndex(idx)}
+                        className={`h-2.5 w-2.5 rounded-full border border-slate-900/10 transition ${idx === galleryIndex ? 'bg-slate-900' : 'bg-slate-200 hover:bg-slate-300'}`}
+                        aria-label={`Show gallery image ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <article
+              className="prose prose-lg mt-8 max-w-none text-slate-700 prose-headings:text-slate-900 prose-headings:font-semibold prose-p:text-slate-700 prose-li:text-slate-700 prose-li:marker:text-slate-400 prose-strong:text-slate-900 prose-blockquote:border-l-4 prose-blockquote:border-slate-200 prose-blockquote:text-slate-500 prose-a:text-sky-600 prose-img:rounded-3xl prose-img:shadow-lg prose-pre:bg-white/80 prose-pre:text-slate-800 prose-pre:border prose-pre:border-slate-200 prose-pre:rounded-2xl prose-pre:px-5 prose-pre:py-4 prose-pre:whitespace-pre-wrap prose-pre:leading-relaxed prose-code:text-slate-900 prose-table:text-slate-700"
+              dangerouslySetInnerHTML={{ __html: safePostContent }}
+            />
+          </>
         ) : (
           <div className="mt-8 space-y-4 rounded-2xl border border-white/60 bg-white/80 p-6 shadow-lg backdrop-blur">
             <div className="grid gap-4 md:grid-cols-2">
-              <input className="rounded-xl border border-slate-200 px-4 py-2 text-sm" placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-              <input className="rounded-xl border border-slate-200 px-4 py-2 text-sm" placeholder="Tag" value={form.tag} onChange={(e) => setForm({ ...form, tag: e.target.value })} />
+              <input
+                className="rounded-2xl border border-slate-200 bg-white/95 px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400"
+                placeholder="Title"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+              />
+              <input
+                className="rounded-2xl border border-slate-200 bg-white/95 px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400"
+                placeholder="Tag"
+                value={form.tag}
+                onChange={(e) => setForm({ ...form, tag: e.target.value })}
+              />
             </div>
             <ImageUploader
               label="Cover image"
@@ -181,7 +335,48 @@ export default function BlogDetail2() {
               value={form.cover_url}
               onChange={(value) => setForm({ ...form, cover_url: value })}
             />
-            <input className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm" placeholder="Excerpt" value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} />
+            <input
+              className="w-full rounded-2xl border border-slate-200 bg-white/95 px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400"
+              placeholder="Excerpt"
+              value={form.excerpt}
+              onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
+            />
+            <input
+              className="w-full rounded-2xl border border-slate-200 bg-white/95 px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400"
+              placeholder="Project link (https://...)"
+              value={form.project_url}
+              onChange={(e) => setForm({ ...form, project_url: e.target.value })}
+            />
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Additional gallery images</label>
+                <button
+                  type="button"
+                  onClick={addGalleryImageSlot}
+                  disabled={galleryList.length >= MAX_GALLERY_IMAGES}
+                  className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-50"
+                >
+                  Add image
+                </button>
+              </div>
+              {galleryList.length === 0 && <p className="text-sm text-slate-500">Show up to {MAX_GALLERY_IMAGES} supporting screenshots.</p>}
+              {galleryList.map((url, idx) => (
+                <div key={`gallery-edit-${idx}`} className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+                  <ImageUploader
+                    label={`Gallery image ${idx + 1}`}
+                    bucket="Postimg"
+                    pathPrefix="post-gallery"
+                    value={url}
+                    onChange={(value) => updateGalleryImageSlot(idx, value)}
+                  />
+                  <div className="mt-3 flex justify-end">
+                    <button type="button" onClick={() => removeGalleryImageSlot(idx)} className="text-xs font-semibold text-rose-500">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
             <div className="space-y-2">
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">Post body</label>
               <RichTextEditor

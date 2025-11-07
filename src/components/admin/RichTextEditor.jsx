@@ -252,20 +252,31 @@ export default function RichTextEditor({ value, onChange, accent, placeholder = 
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         spellCheck
-        className={`min-h-[240px] w-full px-4 py-3 text-base leading-7 outline-none bg-white text-slate-800 dark:bg-slate-900 dark:text-slate-100 ${dragOver ? 'ring-2 ring-sky-300' : ''}`}
-        style={{ caretColor: accent?.base || '#0ea5e9', lineHeight: 1.7, borderColor: dragOver ? (accent?.soft || '#bae6fd') : undefined }}
+        className={`min-h-[260px] w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-base leading-7 text-slate-900 shadow-inner outline-none transition focus-visible:ring-2 focus-visible:ring-sky-100 ${dragOver ? 'ring-2 ring-sky-300' : ''}`}
+        style={{
+          caretColor: accent?.base || '#0ea5e9',
+          lineHeight: 1.7,
+          borderColor: dragOver ? (accent?.soft || '#bae6fd') : '#e2e8f0',
+          boxShadow: 'inset 0 1px 2px rgba(15,23,42,0.1)',
+        }}
         data-placeholder={placeholder}
         suppressContentEditableWarning
       />
       <style>{`
+        [contenteditable] { font-family: 'Inter', 'ui-sans-serif', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; color: #0f172a; }
         [contenteditable][data-placeholder]:empty:before { content: attr(data-placeholder); color: #94a3b8; }
-        [contenteditable] p { margin: 0 0 0.75rem 0; }
-        [contenteditable] h2 { font-size: 1.25rem; font-weight: 600; margin: 1rem 0 0.5rem; }
-        [contenteditable] h3 { font-size: 1.125rem; font-weight: 600; margin: 0.75rem 0 0.5rem; }
-        [contenteditable] ul, [contenteditable] ol { padding-left: 1.25rem; margin: 0.75rem 0; }
-        [contenteditable] a { color: ${accent?.base || '#0ea5e9'}; text-decoration: underline; }
-        [contenteditable] blockquote { border-left: 3px solid ${accent?.base || '#0ea5e9'}; padding-left: .75rem; margin: .75rem 0; color: #475569; }
-        [contenteditable] pre { background: #0f172a0d; padding: .75rem; border-radius: .5rem; overflow:auto; white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; }
+        [contenteditable] p { margin: 0 0 0.9rem 0; line-height: 1.75; color: #1e293b; }
+        [contenteditable] h2 { font-size: 1.35rem; font-weight: 600; margin: 1.2rem 0 0.5rem; color: #0f172a; }
+        [contenteditable] h3 { font-size: 1.15rem; font-weight: 600; margin: 0.9rem 0 0.4rem; color: #0f172a; }
+        [contenteditable] ul, [contenteditable] ol { padding-left: 1.35rem; margin: 0.9rem 0; color: #334155; }
+        [contenteditable] ul { list-style-type: disc; }
+        [contenteditable] ol { list-style-type: decimal; }
+        [contenteditable] li { margin-bottom: 0.45rem; }
+        [contenteditable] a { color: ${accent?.base || '#0ea5e9'}; text-decoration: underline; font-weight: 500; }
+        [contenteditable] blockquote { border-left: 4px solid ${accent?.base || '#0ea5e9'}; padding-left: .9rem; margin: 1rem 0; color: #475569; background: #f1f5f9; border-radius: 0 1rem 1rem 0; }
+        [contenteditable] code { background: #e2e8f0; color: #0f172a; border-radius: 0.45rem; padding: 0.15rem 0.45rem; font-size: 0.9em; font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; }
+        [contenteditable] pre { background: #f8fafc; border: 1px solid #e2e8f0; padding: 1rem 1.25rem; border-radius: 1.25rem; overflow: auto; white-space: pre-wrap; font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; color: #0f172a; box-shadow: inset 0 1px 2px rgba(15,23,42,.08); }
+        [contenteditable] pre code { background: transparent; padding: 0; color: inherit; font-size: 0.95em; }
       `}</style>
     </div>
   )
