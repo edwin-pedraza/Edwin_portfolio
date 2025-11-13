@@ -5,7 +5,7 @@ import { Portfolio3DModels, StarsCanvas } from "./canvas";
 import { useTypewriter, Cursor } from "react-simple-typewriter";
 import { FaLinkedinIn, FaReact } from "react-icons/fa";
 import {TbBrandNextjs} from "react-icons/tb"
-import {SiTailwindcss,SiFigma} from "react-icons/si"
+import {SiTailwindcss,SiFigma, SiSupabase} from "react-icons/si"
 import {BsGithub} from "react-icons/bs"
 import { useSupabaseQuery, parseList } from "../../supabase/hooks";
 
@@ -85,13 +85,10 @@ const Hero = () => {
                 </a>
                 
                 <a className="bannerIcon" href = "#tech">
-                <TbBrandNextjs className="w-full h-full"/>
+                <SiSupabase className="w-full h-full"/>
                 </a>
                 <a className="bannerIcon" href = "#tech">
                   <SiTailwindcss className="w-full h-full"/>
-                </a>
-                <a className="bannerIcon" href = "#tech">
-                  <SiFigma className="w-full h-full"/>
                 </a>
               </div>
           </div>

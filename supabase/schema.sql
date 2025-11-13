@@ -111,6 +111,11 @@ create table if not exists public.post (
   tag text,
   cover_url text,
   project_url text,
+  download_label text,
+  download_url text,
+  portfolio_featured boolean default false,
+  portfolio_order integer default 999,
+  tech_tags jsonb default '[]'::jsonb,
   gallery_urls jsonb default '[]'::jsonb,
   author_id uuid references public.profile(id) on delete set null,
   published_at timestamptz default now(),
@@ -119,6 +124,11 @@ create table if not exists public.post (
 
 alter table if exists public.post
   add column if not exists project_url text,
+  add column if not exists download_label text,
+  add column if not exists download_url text,
+  add column if not exists portfolio_featured boolean default false,
+  add column if not exists portfolio_order integer default 999,
+  add column if not exists tech_tags jsonb default '[]'::jsonb,
   add column if not exists gallery_urls jsonb default '[]'::jsonb;
 
 alter table public.post enable row level security;

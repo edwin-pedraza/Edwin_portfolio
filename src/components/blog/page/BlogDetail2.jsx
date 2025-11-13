@@ -4,10 +4,15 @@ import { supabase } from '../../../supabase/client'
 import sanitizeHtml from '../../../utils/sanitizeHtml'
 import useBlogSettings from '../useBlogSettings'
 import ImageUploader from '../../admin/ImageUploader'
+import FileUploader from '../../admin/FileUploader'
 import RichTextEditor from '../../admin/RichTextEditor'
 import { buildAccentPalette } from '../../admin/themeUtils'
+import { buildHeroTheme } from './heroTheme'
+import { combineTagSources } from './tagUtils'
+import Footer from './Footer'
 
 const MAX_GALLERY_IMAGES = 3
+const MAX_TECH_TAGS = 8
 
 function normalizeExternalUrl(url) {
   if (!url) return ''
@@ -16,17 +21,47 @@ function normalizeExternalUrl(url) {
   return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
 }
 
+function sanitizeTechTags(list) {
+  const results = []
+  const seen = new Set()
+  if (!Array.isArray(list)) return results
+
+  const addTag = (value) => {
+    const clean = String(value || '').trim()
+    if (!clean) return
+    const key = clean.toLowerCase()
+    if (seen.has(key) || results.length >= MAX_TECH_TAGS) return
+    seen.add(key)
+    results.push(clean)
+  }
+
+  list.forEach((item) => {
+    if (typeof item === 'string' && item.includes(',')) {
+      item.split(',').forEach(addTag)
+    } else {
+      addTag(item)
+    }
+  })
+  return results
+}
+
+function extractTechTagsFromInput(value) {
+  if (!value) return []
+  return sanitizeTechTags(String(value).split(','))
+}
+
 export default function BlogDetail2() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { blog: blogSettings, theme } = useBlogSettings()
+  const { blog: blogSettings, theme: themeColors } = useBlogSettings()
   const [post, setPost] = useState(null)
   const [session, setSession] = useState(null)
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ title: '', tag: '', cover_url: '', excerpt: '', content: '', project_url: '', gallery_urls: [] })
+  const [form, setForm] = useState({ title: '', tag: '', cover_url: '', excerpt: '', content: '', project_url: '', download_label: '', download_url: '', gallery_urls: [], tech_tags: [] })
   const [galleryIndex, setGalleryIndex] = useState(0)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
+  const [techInput, setTechInput] = useState('')
 
   const readingTime = useMemo(() => {
     const clean = sanitizeHtml(form.content || post?.content || '')
@@ -35,9 +70,21 @@ export default function BlogDetail2() {
     return Math.max(1, Math.round(words / 200))
   }, [form.content, post?.content])
 
-  const accent = useMemo(() => buildAccentPalette(theme, 'light'), [theme])
+  const accent = useMemo(() => buildAccentPalette(themeColors, 'light'), [themeColors])
+  const heroTheme = useMemo(() => buildHeroTheme(themeColors, accent.base), [themeColors, accent.base])
+  const galleryNavButtonStyle = useMemo(
+    () => ({
+      backgroundColor: 'rgba(255,255,255,0.95)',
+      color: accent.base,
+      borderColor: accent.border,
+      boxShadow: accent.cardGlow,
+      '--tw-ring-color': accent.soft,
+    }),
+    [accent]
+  )
   const safePostContent = useMemo(() => sanitizeHtml(post?.content || ''), [post?.content])
   const galleryList = useMemo(() => (Array.isArray(form.gallery_urls) ? form.gallery_urls.slice(0, MAX_GALLERY_IMAGES) : []), [form.gallery_urls])
+  const categoryTags = useMemo(() => combineTagSources(post?.tag, post?.tech_tags), [post?.tag, post?.tech_tags])
 
   const [prevNext, setPrevNext] = useState({ prev: null, next: null })
   const [related, setRelated] = useState([])
@@ -51,13 +98,21 @@ export default function BlogDetail2() {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
   }, [])
 
+useEffect(() => {
+  if (!editing) {
+    const current = Array.isArray(form.tech_tags) ? form.tech_tags : []
+    setTechInput(current.join(', '))
+  }
+}, [editing, form.tech_tags])
+
   useEffect(() => {
     async function load() {
       const { data } = await supabase.from('post').select('*').eq('id', id).single()
       if (data) {
         const cleanContent = sanitizeHtml(data.content || '')
         const gallery = Array.isArray(data.gallery_urls) ? data.gallery_urls.slice(0, MAX_GALLERY_IMAGES) : []
-        setPost({ ...data, content: cleanContent, gallery_urls: gallery })
+        const techTags = sanitizeTechTags(data.tech_tags || [])
+        setPost({ ...data, content: cleanContent, gallery_urls: gallery, tech_tags: techTags })
         setForm({
           title: data.title || '',
           tag: data.tag || '',
@@ -65,8 +120,12 @@ export default function BlogDetail2() {
           excerpt: data.excerpt || '',
           content: cleanContent,
           project_url: data.project_url || '',
-          gallery_urls: gallery,
-        })
+      gallery_urls: gallery,
+      download_label: data.download_label || '',
+      download_url: data.download_url || '',
+      tech_tags: techTags,
+    })
+        setTechInput(techTags.join(', '))
 
         if (data.published_at) {
           const { data: prev } = await supabase
@@ -109,14 +168,19 @@ export default function BlogDetail2() {
     const cleanContent = sanitizeHtml(form.content)
     const gallery = galleryList.map((url) => (url || '').trim()).filter(Boolean)
     const projectLink = normalizeExternalUrl(form.project_url || '')
+    const techTags = sanitizeTechTags(form.tech_tags || [])
+    const categoryString = techTags.join(', ') || form.tag || null
     const payload = {
       title: form.title,
-      tag: form.tag,
+      tag: categoryString,
       cover_url: form.cover_url || null,
       excerpt: form.excerpt || null,
       content: cleanContent || null,
       project_url: projectLink || null,
+      download_label: form.download_label || null,
+      download_url: form.download_url || null,
       gallery_urls: gallery,
+      tech_tags: techTags,
     }
     const { error } = await supabase.from('post').update(payload).eq('id', id)
     if (error) {
@@ -190,6 +254,7 @@ export default function BlogDetail2() {
   }, [postGallery.length, galleryIndex])
 
   const projectLink = post?.project_url ? normalizeExternalUrl(post.project_url) : ''
+  const downloadLink = post?.download_url ? normalizeExternalUrl(post.download_url) : ''
 
   if (!post) {
     return <div className="min-h-screen bg-slate-100 px-6 py-10 text-center text-slate-500">Loading...</div>
@@ -208,13 +273,37 @@ export default function BlogDetail2() {
         {post.cover_url && (
           <img src={post.cover_url} alt={post.title} className="h-[260px] w-full bg-slate-900/5 object-contain md:h-[360px]" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 via-slate-900/20 to-transparent" />
+        <div className="absolute inset-0" style={{ backgroundImage: heroTheme.overlay }} />
         <div className="absolute inset-x-0 bottom-6 px-6 md:px-10">
-          <div className="mx-auto max-w-5xl text-white">
-            {post.tag && <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs uppercase tracking-wider">{post.tag}</span>}
-            <h1 className="mt-3 text-3xl font-semibold leading-tight md:text-4xl">{post.title}</h1>
-            <div className="mt-2 text-sm opacity-90">
-              {new Date(post.published_at || post.created_at).toLocaleDateString()} · {readingTime} min read
+          <div className="mx-auto max-w-5xl">
+            <div
+              className="inline-flex w-full max-w-3xl flex-col gap-4 rounded-3xl border px-6 py-5 text-white backdrop-blur"
+              style={{ backgroundColor: heroTheme.cardBg, borderColor: heroTheme.cardBorder, boxShadow: heroTheme.cardShadow }}
+            >
+              {categoryTags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {categoryTags.map((token) => (
+                    <span
+                      key={`hero-tag-${token}`}
+                      className="rounded-full px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.3em]"
+                      style={{ backgroundColor: heroTheme.chipBg, color: heroTheme.chipText }}
+                    >
+                      {token}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div>
+                <h1 className="text-3xl font-semibold leading-tight text-white md:text-4xl">{post.title}</h1>
+                <p className="mt-2 text-sm font-medium text-white/80">
+                  {new Date(post.published_at || post.created_at).toLocaleDateString()} · {readingTime} min read
+                </p>
+              </div>
+              {post.excerpt && (
+                <p className="text-sm text-white/80">
+                  {post.excerpt}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -245,6 +334,15 @@ export default function BlogDetail2() {
                 <p className="text-slate-800">{post.excerpt}</p>
               </div>
             )}
+            {categoryTags.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {categoryTags.map((tag) => (
+                  <span key={`tech-pill-${tag}`} className="inline-flex items-center rounded-full bg-slate-900/5 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {projectLink && (
               <a
@@ -258,6 +356,18 @@ export default function BlogDetail2() {
                   <div className="mt-1 text-lg font-semibold">View the live admin experience</div>
                 </div>
                 <span aria-hidden className="text-2xl">↗</span>
+              </a>
+            )}
+            {downloadLink && (
+              <a
+                href={downloadLink}
+                target="_blank"
+                rel="noreferrer"
+                download
+                className="mt-4 inline-flex max-w-sm items-center gap-3 rounded-2xl border border-emerald-400/40 bg-white px-5 py-3 text-sm font-semibold text-emerald-700 shadow-lg shadow-emerald-500/15 transition hover:-translate-y-0.5 hover:bg-emerald-50"
+              >
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/10 text-base">⬇</span>
+                <span>{post.download_label || 'Download file'}</span>
               </a>
             )}
 
@@ -275,18 +385,24 @@ export default function BlogDetail2() {
                       <button
                         type="button"
                         onClick={() => cycleGallery(-1)}
-                        className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-semibold text-slate-900 shadow-xl shadow-slate-900/10 transition hover:-translate-y-1/2 hover:bg-white"
+                        className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-sm transition duration-200 hover:-translate-y-[55%] hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                        style={galleryNavButtonStyle}
                         aria-label="Previous gallery image"
                       >
-                        <span aria-hidden>&lsaquo;</span>
+                        <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path d="M15 6L9 12l6 6" />
+                        </svg>
                       </button>
                       <button
                         type="button"
                         onClick={() => cycleGallery(1)}
-                        className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-semibold text-slate-900 shadow-xl shadow-slate-900/10 transition hover:-translate-y-1/2 hover:bg-white"
+                        className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border backdrop-blur-sm transition duration-200 hover:-translate-y-[55%] hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                        style={galleryNavButtonStyle}
                         aria-label="Next gallery image"
                       >
-                        <span aria-hidden>&rsaquo;</span>
+                        <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path d="M9 6l6 6-6 6" />
+                        </svg>
                       </button>
                     </>
                   )}
@@ -307,27 +423,24 @@ export default function BlogDetail2() {
               </div>
             )}
 
-            <article
-              className="prose prose-lg mt-8 max-w-none text-slate-700 prose-headings:text-slate-900 prose-headings:font-semibold prose-p:text-slate-700 prose-li:text-slate-700 prose-li:marker:text-slate-400 prose-strong:text-slate-900 prose-blockquote:border-l-4 prose-blockquote:border-slate-200 prose-blockquote:text-slate-500 prose-a:text-sky-600 prose-img:rounded-3xl prose-img:shadow-lg prose-pre:bg-white/80 prose-pre:text-slate-800 prose-pre:border prose-pre:border-slate-200 prose-pre:rounded-2xl prose-pre:px-5 prose-pre:py-4 prose-pre:whitespace-pre-wrap prose-pre:leading-relaxed prose-code:text-slate-900 prose-table:text-slate-700"
-              dangerouslySetInnerHTML={{ __html: safePostContent }}
-            />
+            <article className="relative mt-10 overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-b from-white/90 via-white/80 to-white/60 p-10 shadow-2xl shadow-slate-900/10 backdrop-blur">
+              <div className="prose prose-lg max-w-none text-slate-700 prose-headings:text-slate-900 prose-headings:font-semibold prose-headings:tracking-tight prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-slate-700 prose-p:leading-relaxed prose-li:text-slate-700 prose-li:marker:text-slate-400 prose-strong:text-slate-900 prose-blockquote:border-l-4 prose-blockquote:border-slate-200 prose-blockquote:bg-slate-50 prose-blockquote:text-slate-600 prose-blockquote:italic prose-a:text-sky-600 hover:prose-a:text-sky-500 prose-img:rounded-3xl prose-img:shadow-xl prose-pre:bg-white prose-pre:text-slate-900 prose-pre:border prose-pre:border-slate-200 prose-pre:rounded-2xl prose-pre:px-5 prose-pre:py-4 prose-pre:leading-relaxed prose-pre:shadow-inner prose-pre:shadow-slate-900/5 prose-pre:whitespace-pre-wrap prose-pre:break-words prose-pre:overflow-hidden prose-code:text-rose-500 prose-table:text-slate-700">
+                <div
+                  className="space-y-6 [&>h1]:pb-2 [&>h1]:text-slate-900 [&>h1]:border-b [&>h1]:border-slate-200 [&>h2]:mt-12 [&>h2]:text-slate-900 [&>h2]:border-l-4 [&>h2]:border-slate-900 [&>h2]:pl-4 [&>h3]:uppercase [&>h3]:tracking-[0.2em] [&>ul]:space-y-3 [&>ul]:pl-6 [&>ol]:space-y-3 [&>ol]:pl-6 [&>p]:text-lg [&>p]:leading-8"
+                  dangerouslySetInnerHTML={{ __html: safePostContent }}
+                />
+              </div>
+              <div className="pointer-events-none absolute inset-0 rounded-3xl border border-white/30 shadow-inner shadow-white/40" />
+            </article>
           </>
         ) : (
           <div className="mt-8 space-y-4 rounded-2xl border border-white/60 bg-white/80 p-6 shadow-lg backdrop-blur">
-            <div className="grid gap-4 md:grid-cols-2">
-              <input
-                className="rounded-2xl border border-slate-200 bg-white/95 px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400"
-                placeholder="Title"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-              />
-              <input
-                className="rounded-2xl border border-slate-200 bg-white/95 px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400"
-                placeholder="Tag"
-                value={form.tag}
-                onChange={(e) => setForm({ ...form, tag: e.target.value })}
-              />
-            </div>
+            <input
+              className="w-full rounded-2xl border border-slate-200 bg-white/95 px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400"
+              placeholder="Title"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
             <ImageUploader
               label="Cover image"
               bucket="Postimg"
@@ -347,6 +460,36 @@ export default function BlogDetail2() {
               value={form.project_url}
               onChange={(e) => setForm({ ...form, project_url: e.target.value })}
             />
+            <input
+              className="w-full rounded-2xl border border-slate-200 bg-white/95 px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400"
+              placeholder="Download label (e.g. Case study PDF)"
+              value={form.download_label}
+              onChange={(e) => setForm({ ...form, download_label: e.target.value })}
+            />
+            <FileUploader
+              label="Download file URL"
+              value={form.download_url}
+              onChange={(value) => setForm({ ...form, download_url: value })}
+            />
+            <div className="space-y-2">
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Technologies used</label>
+              <input
+                className="w-full rounded-2xl border border-slate-200 bg-white/95 px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400"
+                placeholder="e.g. React, Supabase"
+                value={techInput}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setTechInput(value)
+                  const parsed = extractTechTagsFromInput(value)
+                  setForm((prev) => ({
+                    ...prev,
+                    tech_tags: parsed,
+                    tag: parsed[0] || '',
+                  }))
+                }}
+              />
+              <p className="text-xs text-slate-500">Separate technologies with commas. Up to {MAX_TECH_TAGS} entries.</p>
+            </div>
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Additional gallery images</label>
@@ -467,6 +610,10 @@ export default function BlogDetail2() {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="mx-auto mt-12 max-w-5xl px-6 md:px-10 pb-16">
+        <Footer blogSettings={blogSettings} />
       </div>
     </div>
   )

@@ -8,15 +8,9 @@ import BlogHero from './BlogHero'
 import PostsGrid from './PostsGrid'
 import FeaturedPost from './FeaturedPost'
 import Sidebar from './Sidebar'
+import { deriveCategories } from './categoryUtils'
 
-function deriveCategory(post, strategy = 'tag') {
-  if (strategy === 'title') {
-    return post?.title ? post.title.split(' ')[0] : 'General'
-  }
-  return post?.tag || 'General'
-}
-
-export default function Home({ blogSettings, loading }) {
+export default function Home({ blogSettings, loading, accent, themeColors }) {
   const [posts, setPosts] = useState([])
   const [filteredPosts, setFilteredPosts] = useState([])
   const [activeCategory, setActiveCategory] = useState('All')
@@ -37,7 +31,9 @@ export default function Home({ blogSettings, loading }) {
 
   const categories = useMemo(() => {
     const base = new Set(['All'])
-    posts.forEach((post) => base.add(deriveCategory(post, strategy)))
+    posts.forEach((post) => {
+      deriveCategories(post, strategy).forEach((category) => base.add(category))
+    })
     return Array.from(base)
   }, [posts, strategy])
 
@@ -45,7 +41,7 @@ export default function Home({ blogSettings, loading }) {
     if (activeCategory === 'All') {
       setFilteredPosts(posts)
     } else {
-      setFilteredPosts(posts.filter((post) => deriveCategory(post, strategy) === activeCategory))
+      setFilteredPosts(posts.filter((post) => deriveCategories(post, strategy).includes(activeCategory)))
     }
   }, [activeCategory, posts, strategy])
 
@@ -72,7 +68,7 @@ export default function Home({ blogSettings, loading }) {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <div className="space-y-8">
-            <FeaturedPost post={featured} />
+            <FeaturedPost post={featured} accent={accent} themeColors={themeColors} />
             <PostsGrid posts={rest} />
           </div>
           <Sidebar
@@ -103,4 +99,8 @@ Home.propTypes = {
     categoryStrategy: PropTypes.oneOf(['tag', 'title']),
   }),
   loading: PropTypes.bool,
+  accent: PropTypes.shape({
+    base: PropTypes.string,
+  }),
+  themeColors: PropTypes.object,
 }

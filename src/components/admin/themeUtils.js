@@ -8,6 +8,9 @@ export const DEFAULT_THEME_COLORS = Object.freeze({
   logo: '',
   lightShell: '#f1f5f9',
   darkShell: '#0f172a',
+  heroOverlay: '#0f172a',
+  heroCard: '#0f172a',
+  heroChip: '#0ea5e9',
 })
 
 export const DEFAULT_BLOG_SETTINGS = Object.freeze({
@@ -57,7 +60,10 @@ export function normalizeThemeColors(colors = DEFAULT_THEME_COLORS) {
   const logo = colors?.logo ? normalizeHexColor(colors.logo, base) : ''
   const lightShell = normalizeHexColor(colors?.lightShell ?? DEFAULT_THEME_COLORS.lightShell, DEFAULT_THEME_COLORS.lightShell)
   const darkShell = normalizeHexColor(colors?.darkShell ?? DEFAULT_THEME_COLORS.darkShell, DEFAULT_THEME_COLORS.darkShell)
-  return { base, button, logo, lightShell, darkShell }
+  const heroOverlay = normalizeHexColor(colors?.heroOverlay ?? DEFAULT_THEME_COLORS.heroOverlay, DEFAULT_THEME_COLORS.heroOverlay)
+  const heroCard = normalizeHexColor(colors?.heroCard ?? heroOverlay, heroOverlay)
+  const heroChip = normalizeHexColor(colors?.heroChip ?? base, base)
+  return { base, button, logo, lightShell, darkShell, heroOverlay, heroCard, heroChip }
 }
 
 export function normalizeContactLinks(links) {
@@ -247,6 +253,9 @@ export function buildAccentPalette(themeColors, mode = 'light') {
     logo,
     lightShell: normalized.lightShell,
     darkShell: normalized.darkShell,
+    heroOverlay: normalized.heroOverlay,
+    heroCard: normalized.heroCard,
+    heroChip: normalized.heroChip,
     baseContrast,
     buttonContrast,
     soft,
@@ -264,6 +273,9 @@ export function buildAccentPalette(themeColors, mode = 'light') {
       '--admin-accent-softer': softer,
       '--admin-shell-light': normalized.lightShell,
       '--admin-shell-dark': normalized.darkShell,
+      '--admin-hero-overlay': normalized.heroOverlay,
+      '--admin-hero-card': normalized.heroCard,
+      '--admin-hero-chip': normalized.heroChip,
     },
   }
 }

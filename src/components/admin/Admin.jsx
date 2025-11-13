@@ -213,6 +213,15 @@ export default function Admin() {
   const themeStyles = themeConfig[theme]
 
   const accent = useMemo(() => createAccentPalette(themeColors, theme), [themeColors, theme])
+  const openButtonArrowStyle = useMemo(() => {
+    const rgb = hexToRgb(accent.buttonContrast)
+    if (!rgb) return { color: accent.buttonContrast }
+    return {
+      color: accent.buttonContrast,
+      borderColor: toRgba(rgb, theme === 'light' ? 0.35 : 0.45),
+      backgroundColor: toRgba(rgb, theme === 'light' ? 0.14 : 0.25),
+    }
+  }, [accent.buttonContrast, theme])
 
   const filteredSections = useMemo(() => SECTION_META.filter((s) =>
     space === 'portfolio'
@@ -755,14 +764,20 @@ export default function Admin() {
                         <button
                           type="button"
                           onClick={() => setTab(key)}
-                          className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition focus:outline-none focus-visible:ring-2"
+                          className="group inline-flex items-center gap-3 rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition focus:outline-none focus-visible:ring-2"
                           style={{ backgroundColor: accent.button, color: accent.buttonContrast, boxShadow: accent.cardGlow, '--tw-ring-color': accent.soft }}
                         >
-                          Open
-                          <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-                            <path d="M5 12h14" />
-                            <path d="M12 5l7 7-7 7" />
-                          </svg>
+                          <span>Open</span>
+                          <span
+                            aria-hidden="true"
+                            className="flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:shadow-md"
+                            style={openButtonArrowStyle}
+                          >
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" viewBox="0 0 24 24">
+                              <path d="M5 12h14" />
+                              <path d="M12 5l7 7-7 7" />
+                            </svg>
+                          </span>
                         </button>
                       </div>
                     </div>

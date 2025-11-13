@@ -22,24 +22,39 @@ export default function About({ blogSettings, accent }) {
   const isHtml = /<\w+[\s\S]*>/i.test(about.aboutContent || '')
   const contentNode = isHtml ? (
     <div
-      className={`${about.aboutLargeText ? 'text-lg md:text-xl leading-relaxed' : 'leading-relaxed'} prose prose-slate max-w-none dark:prose-invert`}
+      className={`${about.aboutLargeText ? 'text-lg md:text-xl leading-relaxed' : 'leading-relaxed'} prose prose-lg prose-slate max-w-none text-slate-600 dark:prose-invert`}
       dangerouslySetInnerHTML={{ __html: sanitizeHtml(about.aboutContent) }}
     />
   ) : (
-    <p className={`${about.aboutLargeText ? 'text-lg md:text-xl leading-relaxed' : 'leading-relaxed'} text-slate-600 whitespace-pre-line`}>
-      {highlight(about.aboutContent || 'Stories about building products, refining craft, and the lessons learned along the way.', about.aboutEmphasis, accent?.base)}
-    </p>
+    <div className="space-y-4 text-slate-600">
+      {(about.aboutContent || 'Stories about building products, refining craft, and the lessons learned along the way.')
+        .split('\n')
+        .filter(Boolean)
+        .map((paragraph, idx) => (
+          <p
+            key={`about-paragraph-${idx}`}
+            className={`${about.aboutLargeText ? 'text-lg md:text-xl leading-relaxed' : 'leading-relaxed'}`}
+          >
+            {highlight(paragraph, about.aboutEmphasis, accent?.base)}
+          </p>
+        ))}
+    </div>
   )
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <section className="rounded-3xl border border-slate-200 bg-white shadow-md shadow-slate-900/5 overflow-hidden">
       <div className="px-8 py-10 md:px-12" style={bgStyle}>
         <h1 className="text-3xl font-semibold text-slate-900">{about.aboutTitle || 'About this blog'}</h1>
-        <div className="mt-6 grid gap-8 lg:grid-cols-[1fr,280px] lg:items-start">
+        <div className="mt-6 grid gap-12 lg:grid-cols-[1fr,280px] lg:items-start">
           {contentNode}
           {imgUrl && (
             <div className="justify-self-center lg:justify-self-end">
-              <img src={imgUrl} alt="About" className="h-52 w-52 rounded-2xl object-cover shadow-md ring-1 ring-slate-200" />
+              <div className="relative">
+                <img src={imgUrl} alt="About" className="h-52 w-52 rounded-2xl object-cover shadow-xl ring-1 ring-slate-200" />
+                <div className="absolute -bottom-4 inset-x-0 rounded-2xl bg-white/90 px-3 py-2 text-center text-xs font-medium text-slate-600 shadow-lg">
+                  {about.authorAvatarUrl ? about.authorName || 'Author' : 'Life & Work'}
+                </div>
+              </div>
             </div>
           )}
         </div>

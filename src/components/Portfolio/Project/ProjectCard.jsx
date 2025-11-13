@@ -4,6 +4,7 @@ import {Tilt} from "react-tilt";
 
 import { fadeIn} from "../utils/motion";
 import { github, webIcon } from "../../../assets";
+import { Link } from "react-router-dom";
 import ModelPreview from "./ModelPreview";
 import { styles } from "../../../styles";
 
@@ -45,33 +46,49 @@ const ProjectCard =({
           
 
           <div className=' absolute inset-0 flex gap-2 justify-end m-3 card-img_hover'>
-            
 
-              <div >
-              <div
-                onClick={() => window.open(source_code_link, "_blank")}
-                className='black-gradient w-10 h-10 rounded-full flex justify-center items-center cursor-pointer'
-              >
-                <img
-                  src={github}
-                  alt='source code'
-                  className='w-1/2 h-1/2 object-contain'
-                />
+            {source_code_link && source_code_link !== source_link_web && (
+              <div>
+                <div
+                  onClick={() => window.open(source_code_link, "_blank")}
+                  className='black-gradient w-10 h-10 rounded-full flex justify-center items-center cursor-pointer'
+                >
+                  <img
+                    src={github}
+                    alt='source code'
+                    className='w-1/2 h-1/2 object-contain'
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
-            <div>
-              <div
-                onClick={() => window.open(source_link_web, "_blank")}
-                className='black-gradient w-10 h-10 rounded-full flex justify-center items-center cursor-pointer'
-              >
-                <img
-                  src={webIcon}
-                  alt='source code'
-                  className='w-1/2 h-1/2 object-contain rounded-full'
-                />
+            {source_link_web && (
+              <div>
+                <div
+                  onClick={() => {
+                    if (source_link_web.startsWith('/react/blog/')) {
+                      window.location.href = source_link_web
+                    } else {
+                      window.open(source_link_web, "_blank")
+                    }
+                  }}
+                  className='black-gradient w-10 h-10 rounded-full flex justify-center items-center cursor-pointer text-white text-sm font-semibold'
+                >
+                  {source_link_web.startsWith('/react/blog/') ? (
+                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10 13a4 4 0 0 1 0-5.66l2.12-2.12a4 4 0 0 1 5.66 5.66l-1.2 1.2" />
+                      <path d="M14 11a4 4 0 0 1 0 5.66l-2.12 2.12a4 4 0 0 1-5.66-5.66l1.2-1.2" />
+                    </svg>
+                  ) : (
+                    <img
+                      src={webIcon}
+                      alt='source link'
+                      className='w-1/2 h-1/2 object-contain rounded-full'
+                    />
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
           </div>
 

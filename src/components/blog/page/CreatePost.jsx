@@ -13,7 +13,7 @@ function slugify(value = '') {
 
 export default function CreatePost() {
   const [session, setSession] = useState(null)
-  const [form, setForm] = useState({ title: '', slug: '', tag: '', excerpt: '', content: '', cover_url: '' })
+  const [form, setForm] = useState({ title: '', tag: '', excerpt: '', content: '', cover_url: '' })
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
   const navigate = useNavigate()
@@ -23,11 +23,6 @@ export default function CreatePost() {
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, next) => setSession(next))
     return () => authListener.subscription.unsubscribe()
   }, [])
-
-  useEffect(() => {
-    if (!form.title) return
-    setForm((prev) => ({ ...prev, slug: slugify(prev.title) }))
-  }, [form.title])
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -39,7 +34,7 @@ export default function CreatePost() {
     setMsg('')
     const payload = {
       title: form.title,
-      slug: form.slug || slugify(form.title),
+      slug: slugify(form.title),
       tag: form.tag || null,
       excerpt: form.excerpt || null,
       content: form.content || null,
@@ -68,19 +63,13 @@ export default function CreatePost() {
       <h1 className="text-3xl font-semibold text-slate-900">New post</h1>
       <p className="mt-2 text-sm text-slate-500">Draft your article and publish it in one go.</p>
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4">
           <input
             value={form.title}
             onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
             placeholder="Post title"
             className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
             required
-          />
-          <input
-            value={form.slug}
-            onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))}
-            placeholder="Slug"
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
           />
         </div>
         <div className="grid gap-4 md:grid-cols-2">
@@ -118,7 +107,7 @@ export default function CreatePost() {
             disabled={saving}
             className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:bg-emerald-600/60"
           >
-            {saving ? 'Publishing…' : 'Publish post'}
+            {saving ? 'Publishingâ€¦' : 'Publish post'}
           </button>
           {msg && <span className="text-sm text-rose-500">{msg}</span>}
         </div>

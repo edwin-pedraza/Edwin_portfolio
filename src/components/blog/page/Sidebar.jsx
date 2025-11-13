@@ -1,20 +1,17 @@
 import PropTypes from 'prop-types'
 
 import { useMemo } from 'react'
-
-function deriveCategory(post, strategy = 'tag') {
-  if (strategy === 'title') {
-    return post?.title ? post.title.split(' ')[0] : 'General'
-  }
-  return post?.tag || 'General'
-}
+import { deriveCategories } from './categoryUtils'
 
 export default function Sidebar({ posts = [], onSelectCategory, activeCategory, strategy = 'tag', blogSettings }) {
   const tags = useMemo(() => {
     const base = new Set()
-    posts.forEach((post) => base.add(deriveCategory(post, strategy)))
+    posts.forEach((post) => {
+      deriveCategories(post, strategy).forEach((category) => base.add(category))
+    })
     return Array.from(base)
   }, [posts, strategy])
+  const categoryList = tags.length ? tags : ['General']
 
   return (
     <aside className="space-y-6">
@@ -36,16 +33,10 @@ export default function Sidebar({ posts = [], onSelectCategory, activeCategory, 
       <div className="rounded-2xl border border-white/60 bg-white/70 p-6 shadow-lg backdrop-blur">
         <div className="text-sm font-semibold text-slate-900">Categories</div>
         <div className="mt-3 flex flex-wrap gap-2">
-          {tags.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => onSelectCategory?.(tag)}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                tag === activeCategory ? 'bg-slate-900 text-white border-slate-900 shadow' : 'border-white/60 text-slate-700 hover:border-white/70'
-              }`}
-            >
-              {tag}
-            </button>
+          {categoryList.map((label) => (
+            <span key={`sidebar-cat-${label}`} className="inline-flex items-center rounded-full bg-slate-900/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
+              {label}
+            </span>
           ))}
         </div>
       </div>

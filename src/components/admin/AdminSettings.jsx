@@ -12,9 +12,19 @@ import {
 } from './themeUtils'
 
 const presetColors = ['#38bdf8', '#6366f1', '#0ea5e9', '#22c55e', '#f97316', '#ef4444', '#d946ef', '#14b8a6', '#eab308']
+const initialThemeInputs = {
+  base: DEFAULT_ACCENT,
+  button: '',
+  logo: '',
+  lightShell: DEFAULT_THEME_COLORS.lightShell,
+  darkShell: DEFAULT_THEME_COLORS.darkShell,
+  heroOverlay: DEFAULT_THEME_COLORS.heroOverlay,
+  heroCard: DEFAULT_THEME_COLORS.heroCard,
+  heroChip: DEFAULT_THEME_COLORS.heroChip,
+}
 
 function ThemeForm({ themeColors, accent, loading, saving, message, error, onPreview, onSave, onReset }) {
-  const [inputs, setInputs] = useState({ base: DEFAULT_ACCENT, button: '', logo: '', lightShell: DEFAULT_THEME_COLORS.lightShell, darkShell: DEFAULT_THEME_COLORS.darkShell })
+  const [inputs, setInputs] = useState(initialThemeInputs)
   const [buttonCustom, setButtonCustom] = useState(false)
   const [logoCustom, setLogoCustom] = useState(false)
 
@@ -25,6 +35,9 @@ function ThemeForm({ themeColors, accent, loading, saving, message, error, onPre
       logo: themeColors.logo || '',
       lightShell: themeColors.lightShell,
       darkShell: themeColors.darkShell,
+      heroOverlay: themeColors.heroOverlay,
+      heroCard: themeColors.heroCard,
+      heroChip: themeColors.heroChip,
     })
     setButtonCustom(Boolean(themeColors.button))
     setLogoCustom(Boolean(themeColors.logo))
@@ -35,7 +48,10 @@ function ThemeForm({ themeColors, accent, loading, saving, message, error, onPre
   const logoValid = useMemo(() => (!logoCustom) || isValidHexCandidate(inputs.logo), [logoCustom, inputs.logo])
   const lightShellValid = useMemo(() => isValidHexCandidate(inputs.lightShell), [inputs.lightShell])
   const darkShellValid = useMemo(() => isValidHexCandidate(inputs.darkShell), [inputs.darkShell])
-  const canSave = baseValid && buttonValid && logoValid && lightShellValid && darkShellValid && !loading
+  const heroOverlayValid = useMemo(() => isValidHexCandidate(inputs.heroOverlay), [inputs.heroOverlay])
+  const heroCardValid = useMemo(() => isValidHexCandidate(inputs.heroCard), [inputs.heroCard])
+  const heroChipValid = useMemo(() => isValidHexCandidate(inputs.heroChip), [inputs.heroChip])
+  const canSave = baseValid && buttonValid && logoValid && lightShellValid && darkShellValid && heroOverlayValid && heroCardValid && heroChipValid && !loading
 
   function preview(partial = {}, flagOverrides = {}) {
     const nextButtonCustom = flagOverrides.buttonCustom ?? buttonCustom
@@ -63,6 +79,10 @@ function ThemeForm({ themeColors, accent, loading, saving, message, error, onPre
       if (isValidHexCandidate(value)) normalized.logo = normalizeHexColor(value, normalizedBase)
     }
 
+    normalized.heroOverlay = normalizeHexColor(partial.heroOverlay ?? inputs.heroOverlay, DEFAULT_THEME_COLORS.heroOverlay)
+    normalized.heroCard = normalizeHexColor(partial.heroCard ?? inputs.heroCard, normalized.heroOverlay)
+    normalized.heroChip = normalizeHexColor(partial.heroChip ?? inputs.heroChip, normalizedBase)
+
     onPreview(normalized)
   }
 
@@ -75,7 +95,15 @@ function ThemeForm({ themeColors, accent, loading, saving, message, error, onPre
       logo: logoCustom ? normalizeHexColor(inputs.logo, inputs.base || DEFAULT_ACCENT) : '',
       lightShell: normalizeHexColor(inputs.lightShell, DEFAULT_THEME_COLORS.lightShell),
       darkShell: normalizeHexColor(inputs.darkShell, DEFAULT_THEME_COLORS.darkShell),
+      heroOverlay: normalizeHexColor(inputs.heroOverlay, DEFAULT_THEME_COLORS.heroOverlay),
+      heroCard: normalizeHexColor(inputs.heroCard, inputs.heroOverlay || DEFAULT_THEME_COLORS.heroCard),
+      heroChip: normalizeHexColor(inputs.heroChip, inputs.base || DEFAULT_THEME_COLORS.heroChip),
     })
+  }
+
+  function handleHeroColorChange(key, value) {
+    setInputs((prev) => ({ ...prev, [key]: value }))
+    preview({ [key]: value })
   }
 
   return (
@@ -110,7 +138,7 @@ function ThemeForm({ themeColors, accent, loading, saving, message, error, onPre
             <button
               type="button"
               onClick={() => {
-                setInputs({ base: DEFAULT_ACCENT, button: '', logo: '', lightShell: DEFAULT_THEME_COLORS.lightShell, darkShell: DEFAULT_THEME_COLORS.darkShell })
+                setInputs({ ...initialThemeInputs })
                 setButtonCustom(false)
                 setLogoCustom(false)
                 onReset()
@@ -139,6 +167,75 @@ function ThemeForm({ themeColors, accent, loading, saving, message, error, onPre
                 aria-label={`Use ${color}`}
               />
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-5">
+        <div>
+          <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300">Hero spotlight</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Control the tint, card, and chip colors used on featured post overlays.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Overlay tint</label>
+            <div className="mt-3 flex items-center gap-4">
+              <input
+                type="color"
+                value={normalizeHexColor(inputs.heroOverlay, DEFAULT_THEME_COLORS.heroOverlay)}
+                onChange={(event) => handleHeroColorChange('heroOverlay', event.target.value)}
+                className="h-12 w-12 cursor-pointer rounded-xl border border-slate-200 bg-transparent p-1 shadow-sm dark:border-slate-700"
+                aria-label="Pick hero overlay color"
+              />
+              <input
+                type="text"
+                value={inputs.heroOverlay}
+                onChange={(event) => handleHeroColorChange('heroOverlay', event.target.value)}
+                className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+                style={{ '--tw-ring-color': accent.soft }}
+                aria-invalid={!heroOverlayValid}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Card background</label>
+            <div className="mt-3 flex items-center gap-4">
+              <input
+                type="color"
+                value={normalizeHexColor(inputs.heroCard, DEFAULT_THEME_COLORS.heroCard)}
+                onChange={(event) => handleHeroColorChange('heroCard', event.target.value)}
+                className="h-12 w-12 cursor-pointer rounded-xl border border-slate-200 bg-transparent p-1 shadow-sm dark:border-slate-700"
+                aria-label="Pick hero card color"
+              />
+              <input
+                type="text"
+                value={inputs.heroCard}
+                onChange={(event) => handleHeroColorChange('heroCard', event.target.value)}
+                className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+                style={{ '--tw-ring-color': accent.soft }}
+                aria-invalid={!heroCardValid}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Chip background</label>
+            <div className="mt-3 flex items-center gap-4">
+              <input
+                type="color"
+                value={normalizeHexColor(inputs.heroChip, DEFAULT_THEME_COLORS.heroChip)}
+                onChange={(event) => handleHeroColorChange('heroChip', event.target.value)}
+                className="h-12 w-12 cursor-pointer rounded-xl border border-slate-200 bg-transparent p-1 shadow-sm dark:border-slate-700"
+                aria-label="Pick hero chip color"
+              />
+              <input
+                type="text"
+                value={inputs.heroChip}
+                onChange={(event) => handleHeroColorChange('heroChip', event.target.value)}
+                className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+                style={{ '--tw-ring-color': accent.soft }}
+                aria-invalid={!heroChipValid}
+              />
+            </div>
           </div>
         </div>
       </section>

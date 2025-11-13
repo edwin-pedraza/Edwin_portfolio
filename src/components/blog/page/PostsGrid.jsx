@@ -1,13 +1,16 @@
 import PropTypes from 'prop-types'
 
 import { useNavigate } from 'react-router-dom'
+import { combineTagSources } from './tagUtils'
 
 export default function PostsGrid({ posts = [] }) {
   const navigate = useNavigate()
   if (!posts.length) return null
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {posts.map((post) => (
+      {posts.map((post) => {
+        const categories = combineTagSources(post.tag, post.tech_tags).slice(0, 6)
+        return (
         <article
           key={post.id}
           onClick={() => navigate('blog-detail/' + post.id)}
@@ -15,13 +18,21 @@ export default function PostsGrid({ posts = [] }) {
         >
           {post.cover_url && <img src={post.cover_url} alt={post.title} className="h-44 w-full object-cover" />}
           <div className="flex flex-1 flex-col gap-3 p-5">
-            {post.tag && <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">{post.tag}</span>}
+            {categories.length > 0 && (
+              <span className="flex flex-wrap gap-1 text-[11px] font-semibold uppercase tracking-wider text-slate-600">
+                {categories.map((tag) => (
+                  <span key={`${post.id}-cat-${tag}`} className="rounded-full bg-slate-900/5 px-2 py-0.5">
+                    {tag}
+                  </span>
+                ))}
+              </span>
+            )}
             <h3 className="text-lg font-semibold text-slate-900">{post.title}</h3>
             {post.excerpt && <p className="text-sm text-slate-700 line-clamp-3">{post.excerpt}</p>}
             <span className="mt-auto text-xs text-slate-500">{new Date(post.published_at || post.created_at).toLocaleDateString()}</span>
           </div>
         </article>
-      ))}
+      )})}
     </div>
   )
 }
@@ -32,5 +43,6 @@ PostsGrid.propTypes = {
     title: PropTypes.string,
     tag: PropTypes.string,
     excerpt: PropTypes.string,
+    tech_tags: PropTypes.arrayOf(PropTypes.string),
   })),
 }
