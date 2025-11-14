@@ -1,3 +1,6 @@
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+
 import { 
   About,
   Contact,
@@ -11,7 +14,19 @@ import {
 import Resume from './components/Portfolio/Resume';
 
 const Home =() => {
-  
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.hash) return;
+    const id = location.hash.replace('#', '');
+    const timeout = setTimeout(() => {
+      const section = document.getElementById(id);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 0);
+    return () => clearTimeout(timeout);
+  }, [location]);
 
   return (
 

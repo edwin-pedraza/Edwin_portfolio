@@ -47,21 +47,49 @@ export const navLinks = [
     id: "contact",
     title: "Contact",
   },
+  {
+    id: "service",
+    title: "Service",
+  },
 ];
 
 const services = [
   {
     title: "Web Developer",
+    slug: "web-developer",
     icon: web,
+    shortDescription:
+      "Responsive interfaces crafted with accessibility, performance, and maintainability in mind.",
+    focusAreas: [
+      "Pixel-perfect UI implementation with React, Tailwind, and Framer Motion animations.",
+      "Design system stewardship to keep typography, spacing, and colors consistent.",
+      "Performance budgets, Core Web Vitals tracking, and Lighthouse-driven optimizations.",
+    ],
+    toolset: ["React", "Vite", "Tailwind CSS", "TypeScript", "Framer Motion", "Storybook"],
   },
-  
   {
     title: "Backend Developer",
+    slug: "backend-developer",
     icon: backend,
+    shortDescription: "Robust APIs, secure data flows, and cloud-native deployments that scale.",
+    focusAreas: [
+      "REST and GraphQL API design with proper validation, rate limiting, and observability.",
+      "Database schema design plus migration strategies across PostgreSQL, MongoDB, and Supabase.",
+      "CI/CD pipelines that automate testing, container builds, and blue/green deployments.",
+    ],
+    toolset: ["Node.js", "Express", "Supabase", "PostgreSQL", "MongoDB", "Docker"],
   },
   {
     title: "Game Developer",
+    slug: "game-developer",
     icon: creator,
+    shortDescription: "Gameplay prototypes that balance mechanics, narrative, and player feedback loops.",
+    focusAreas: [
+      "Rapid prototyping of mechanics, level design, and UI flows for early playtesting.",
+      "Shader and particle experimentation to bring environments and characters to life.",
+      "Build automation for multi-platform exports plus telemetry hooks for balancing data.",
+    ],
+    toolset: ["Unity", "C#", "Blender", "Three.js", "WebGL", "Figma"],
   },
 ];
 

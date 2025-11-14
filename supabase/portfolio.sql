@@ -9,10 +9,21 @@ create table if not exists public.service (
   id uuid primary key default gen_random_uuid(),
   "order" int,
   title text not null,
+  slug text,
   icon_url text,
+  short_description text,
+  focus_areas text,
+  toolset_list text,
+  cta_text text,
   created_at timestamptz default now()
 );
 alter table public.service add constraint if not exists service_title_uniq unique (title);
+alter table public.service add column if not exists slug text;
+alter table public.service add column if not exists short_description text;
+alter table public.service add column if not exists focus_areas text;
+alter table public.service add column if not exists toolset_list text;
+alter table public.service add column if not exists cta_text text;
+alter table public.service add constraint if not exists service_slug_uniq unique (slug);
 alter table public.service enable row level security;
 do $$
 begin
@@ -151,10 +162,58 @@ insert into public.nav_link (id, "order", title) values
 on conflict (id) do nothing;
 
 -- services
-insert into public.service ("order", title, icon_url) values
-  (1, 'Web Developer', null),
-  (2, 'Backend Developer', null),
-  (3, 'Game Developer', null)
+insert into public.service ("order", title, slug, icon_url, short_description, focus_areas, toolset_list, cta_text) values
+  (
+    1,
+    'Web Developer',
+    'web-developer',
+    null,
+    'Responsive interfaces crafted with accessibility, performance, and maintainability in mind.',
+    $$Pixel-perfect UI implementation with React, Tailwind, and Framer Motion animations.
+Design system stewardship to keep typography, spacing, and colors consistent.
+Performance budgets, Core Web Vitals tracking, and Lighthouse-driven optimizations.$$,
+    $$React
+Vite
+Tailwind CSS
+TypeScript
+Framer Motion
+Storybook$$,
+    'Let me craft delightful interfaces that convert visitors into users.'
+  ),
+  (
+    2,
+    'Backend Developer',
+    'backend-developer',
+    null,
+    'Robust APIs, secure data flows, and cloud-native deployments that scale.',
+    $$REST and GraphQL API design with proper validation, rate limiting, and observability.
+Database schema design plus migration strategies across PostgreSQL, MongoDB, and Supabase.
+CI/CD pipelines that automate testing, container builds, and blue/green deployments.$$,
+    $$Node.js
+Express
+Supabase
+PostgreSQL
+MongoDB
+Docker$$,
+    'I can help you launch reliable services without slowing the roadmap.'
+  ),
+  (
+    3,
+    'Game Developer',
+    'game-developer',
+    null,
+    'Gameplay prototypes that balance mechanics, narrative, and player feedback loops.',
+    $$Rapid prototyping of mechanics, level design, and UI flows for early playtesting.
+Shader and particle experimentation to bring environments and characters to life.
+Build automation for multi-platform exports plus telemetry hooks for balancing data.$$,
+    $$Unity
+C#
+Blender
+Three.js
+WebGL
+Figma$$,
+    'Let’s turn your story into an interactive experience.'
+  )
 on conflict (title) do nothing;
 
 -- technologies

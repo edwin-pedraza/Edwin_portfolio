@@ -533,12 +533,16 @@ export default function Admin() {
     )
   }
 
+  const baseBackground = theme === 'light' ? accent.lightShell : accent.darkShell
+
   return (
     <div
       className={`min-h-screen transition-colors duration-300 ${themeStyles.shell}`}
       style={{
         ...accent.cssVars,
-        backgroundColor: theme === 'light' ? accent.lightShell : accent.darkShell,
+        backgroundColor: baseBackground,
+        background: baseBackground,
+        backgroundImage: 'none',
       }}
     >
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-6 px-4 py-10 sm:px-6 lg:grid lg:grid-cols-[260px,1fr] lg:px-8">

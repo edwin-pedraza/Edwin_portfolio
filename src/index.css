@@ -12,6 +12,19 @@
   scroll-behavior: smooth;
   color-scheme: dark;
 }
+
+body {
+  min-height: 100vh;
+  background-color: #020617;
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.25) 1px, transparent 3px),
+    radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.2) 1px, transparent 3px),
+    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.18) 1px, transparent 3px),
+    radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.22) 1px, transparent 3px),
+    radial-gradient(circle at 20% 60%, rgba(255, 255, 255, 0.15) 1px, transparent 3px);
+  background-size: 200px 200px, 260px 260px, 180px 180px, 220px 220px, 240px 240px;
+  background-attachment: fixed;
+}
 .resumBtn{
   
   border: white;

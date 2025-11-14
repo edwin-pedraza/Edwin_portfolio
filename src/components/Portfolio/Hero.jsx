@@ -30,7 +30,7 @@ const Hero = () => {
   const displayName = profile?.full_name || 'Edwin'
   const githubUrl = profile?.github_url || 'https://github.com/edwin-pedraza'
   const linkedinUrl = profile?.linkedin_url || 'https://www.linkedin.com/in/edwin-y-pedraza-b-/'
-  const initialMode = hero?.default_mode || 'laptop'
+  const initialMode = hero?.default_mode || 'workspace'
   const logoText = hero?.logo_text || 'EDWIN - DEV - DATA'
 
   return (
@@ -97,10 +97,8 @@ const Hero = () => {
           
           
         </div>
-        <div className='basis-1/2 my-14 mx-4 sm:my-14 sm:mx-10'>
-
-          
-          <Portfolio3DModels initialMode={initialMode} logoText={logoText} />
+        <div className='flex-1 my-14 mx-4 sm:my-14 sm:mx-10 w-full max-w-[700px]'>
+          <Portfolio3DModels width="700px" initialMode={initialMode} logoText={logoText} />
         </div>
         <StarsCanvas/>
       </div>

@@ -1,5 +1,6 @@
 import { Tilt } from "react-tilt";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 import { styles } from "../../styles";
 import { services } from "./constants";
@@ -9,23 +10,39 @@ import { fadeIn, textVariant } from "./utils/motion";
 
 import foto from "../../assets/foto_edwin.png";
 
-const ServiceCard = ({ index, title, icon }) => {
+const slugify = (value = "") =>
+  value
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+
+const ServiceCard = ({ index, title, icon, slug }) => {
+  const targetSlug = slug || slugify(title || "");
+
   return (
     <Tilt className="sm:w-[250px] w-full flex-wrap justify-center">
       <motion.div
         variants={fadeIn("right", "spring", 0.5 * index, 0.75)}
         className="w-full green-pink-gradient p-[1px] rounded-[20px] shadow-card"
       >
-        <div className="bg-tertiary rounded-[20px] py-5 px-12 min-h-[280px] flex justify-evenly items-center flex-col">
-          {icon ? (
-            <img src={icon} alt="service-icon" className="w-20 h-20 object-contain rounded-full" />
-          ) : (
-            <div className="w-20 h-20 rounded-full bg-black-200 flex items-center justify-center text-white text-xl">
-              {title?.charAt(0) || "?"}
-            </div>
-          )}
-          <h3 className="text-white text-[20px] font-bold text-center">{title}</h3>
-        </div>
+        <Link
+          to={`/react/services/${targetSlug}`}
+          className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#915EFF] rounded-[20px]"
+        >
+          <div className="bg-tertiary rounded-[20px] py-5 px-12 min-h-[280px] flex justify-evenly items-center flex-col">
+            {icon ? (
+              <img src={icon} alt="service-icon" className="w-20 h-20 object-contain rounded-full" />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-black-200 flex items-center justify-center text-white text-xl">
+                {title?.charAt(0) || "?"}
+              </div>
+            )}
+            <h3 className="text-white text-[20px] font-bold text-center mt-4">{title}</h3>
+            <p className="text-secondary text-center text-sm mt-2">Tap to explore the full service</p>
+          </div>
+        </Link>
       </motion.div>
     </Tilt>
   );
@@ -37,8 +54,12 @@ const About = () => {
 
   const serviceList =
     Array.isArray(serviceRows) && serviceRows.length > 0
-      ? serviceRows.map((s) => ({ title: s.title, icon: s.icon_url || undefined }))
-      : services;
+      ? serviceRows.map((s) => ({
+          title: s.title,
+          icon: s.icon_url || undefined,
+          slug: s.slug || slugify(s.title || ""),
+        }))
+      : services.map((service) => ({ ...service, slug: service.slug || slugify(service.title) }));
 
   const profile = Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : null;
 

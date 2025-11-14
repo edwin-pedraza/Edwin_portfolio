@@ -4,20 +4,64 @@
 //   import Portfolio3DModelsAlt from './Portfolio3DModelsAlt_transparent_clean'
 //   <Portfolio3DModelsAlt height={360} />
 
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Float, Environment, Line, Text } from "@react-three/drei";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { GLTFExporter } from "three-stdlib";
 
 // ---------- Utilidades ----------
-function useRotY(speed = 0.2) {
+function useRotY(initialRotation = 0) {
   const ref = useRef();
-  useFrame((_, dt) => ref.current && (ref.current.rotation.y += dt * speed));
+  useEffect(() => {
+    if (ref.current) ref.current.rotation.y = initialRotation;
+  }, [initialRotation]);
   return ref;
 }
 
-function ExportButton({ getObject, fileName = "model.glb" }) {
+function createScreenTexture({ title, subtitle, accent = "#38bdf8", background = "#0f172a" }) {
+  const canvas = document.createElement("canvas");
+  const width = 1024;
+  const height = 512;
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  const gradient = ctx.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, background);
+  gradient.addColorStop(1, "#0b1120");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.fillStyle = "#111c32";
+  ctx.fillRect(80, 80, width - 160, height - 160);
+
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(120, height - 150);
+  ctx.lineTo(width * 0.35, height - 220);
+  ctx.lineTo(width * 0.65, height - 180);
+  ctx.lineTo(width - 120, height - 210);
+  ctx.stroke();
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = accent;
+  ctx.font = "bold 72px 'Poppins', sans-serif";
+  ctx.fillText(title, width / 2, height / 2 - 40);
+
+  ctx.fillStyle = "#e2e8f0";
+  ctx.font = "normal 42px 'Poppins', sans-serif";
+  ctx.fillText(subtitle, width / 2, height / 2 + 60);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.anisotropy = 8;
+  texture.encoding = THREE.sRGBEncoding;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function ExportButton({ getObject, fileName = "model.glb", className = "" }) {
   const onExport = () => {
     const obj = getObject?.();
     if (!obj) return;
@@ -35,7 +79,10 @@ function ExportButton({ getObject, fileName = "model.glb" }) {
     );
   };
   return (
-    <button onClick={onExport} className="px-3 py-1 rounded-xl bg-black/70 text-white text-sm hover:bg-black/80 border border-white/10">
+    <button
+      onClick={onExport}
+      className={`px-4 py-2 rounded-2xl text-sm font-semibold border border-white/10 bg-black/60 text-white hover:bg-black/80 transition-colors ${className}`}
+    >
       Exportar GLB
     </button>
   );
@@ -45,7 +92,7 @@ const sanitize = (s) => s.normalize('NFKD').replace(/[\/\\:*?"<>|]/g, '-').repla
 
 // ---------- Escena 1: Laptop (Dev) ----------
 function LaptopScene({ groupRef }) {
-  const rot = useRotY(0.15);
+  const rot = useRotY(-0.45);
   const keys = useMemo(() => {
     const arr = [];
     for (let y = 0; y < 5; y++) {
@@ -88,7 +135,7 @@ function LaptopScene({ groupRef }) {
 
 // ---------- Escena 2: Donut KPI (Data) ----------
 function DonutScene({ groupRef, values = [30, 20, 15, 10, 25] }) {
-  const rot = useRotY(0.1);
+  const rot = useRotY(-0.4);
   const total = values.reduce((a, b) => a + b, 0);
   const colors = ["#22d3ee", "#34d399", "#818cf8", "#f472b6", "#fbbf24"];
   let acc = 0;
@@ -118,7 +165,7 @@ function DonutScene({ groupRef, values = [30, 20, 15, 10, 25] }) {
 
 // ---------- Escena 3: Scatter Clusters (ML) ----------
 function ScatterScene({ groupRef, clusters = 4, pointsPerCluster = 80 }) {
-  const rot = useRotY(0.06);
+  const rot = useRotY(-0.5);
   const { positions } = useMemo(() => {
     const pos = []; const palette = [new THREE.Color("#60a5fa"), new THREE.Color("#34d399"), new THREE.Color("#f59e0b"), new THREE.Color("#a78bfa")];
     const col = [];
@@ -160,7 +207,7 @@ function ScatterScene({ groupRef, clusters = 4, pointsPerCluster = 80 }) {
 
 // ---------- Escena 4: Logo Text (Brand) ----------
 function LogoScene({ groupRef, text = "EDWIN • DEV • DATA" }) {
-  const rot = useRotY(0.2);
+  const rot = useRotY(-0.2);
   return (
     <group ref={groupRef}>
       <group ref={rot}>
@@ -178,55 +225,189 @@ function LogoScene({ groupRef, text = "EDWIN • DEV • DATA" }) {
   );
 }
 
-// ---------- Componente Principal (transparente + zoom limitado) ----------
-export default function Portfolio3DModelsAlt({ height = 420, initialMode = 'laptop', logoText }) {
-  const [mode, setMode] = useState(initialMode); // laptop | donut | scatter | logo
-  const currentGroup = useRef();
-  const getExportObject = () => currentGroup.current;
+// ---------- Escena 5: Command Center (Dashboard Desk) ----------
+function CommandCenterScene({ groupRef }) {
+  const rot = useRotY(-0.5);
+  const screenTextures = useMemo(() => {
+    const definitions = [
+      { title: "Developer", subtitle: "UI builds & UX polish", accent: "#38bdf8" },
+      { title: "Automation", subtitle: "QA & workflow bots", accent: "#f97316" },
+      { title: "Data Dashboards", subtitle: "Analytics & insight", accent: "#a855f7" },
+    ];
+    return definitions.map((def) => createScreenTexture(def));
+  }, []);
 
-  const title = {
-    laptop: 'Laptop Dev',
-    donut: 'Donut KPI',
-    scatter: 'Scatter Clusters',
-    logo: 'Logo Text'
-  }[mode];
+  useEffect(() => {
+    return () => {
+      screenTextures.forEach((texture) => texture.dispose());
+    };
+  }, [screenTextures]);
+  const chartBars = useMemo(
+    () => new Array(6).fill(0).map((_, i) => 0.3 + (i % 3) * 0.15 + Math.random() * 0.2),
+    []
+  );
+  const linePoints = useMemo(() => {
+    const pts = [];
+    for (let i = 0; i < 6; i++) {
+      pts.push([-1.2 + (i / 5) * 2.4, 0.2 + Math.sin(i * 0.8) * 0.3, 0.06]);
+    }
+    return pts;
+  }, []);
+
+  const monitors = [
+    { position: [0, 1.05, -0.8], rotation: [0, 0, 0], scale: [3.8, 2.1, 0.12] },
+    { position: [-2.2, 1, 0.2], rotation: [0, 0.35, 0], scale: [2.6, 1.6, 0.1] },
+    { position: [2.2, 1, 0.2], rotation: [0, -0.35, 0], scale: [2.6, 1.6, 0.1] },
+  ];
+
+  const accessories = [
+    { position: [-1.8, 0.05, 0.9], scale: [0.7, 0.08, 0.4], color: "#f97316" },
+    { position: [1.6, 0.08, 0.95], scale: [1.0, 0.04, 0.7], color: "#111827" },
+  ];
+
+  const keyboardKeys = useMemo(() => {
+    const keys = [];
+    for (let x = 0; x < 12; x++) {
+      for (let z = 0; z < 3; z++) {
+        keys.push([-1 + x * 0.18, 0.1, 0.4 + z * 0.12]);
+      }
+    }
+    return keys;
+  }, []);
 
   return (
-    <div className="w-full relative" style={{ height, background: 'transparent' }}>
-      {/* Controles (si molestan, puedes ocultarlos con CSS externo) */}
-      <div className="absolute top-3 left-3 z-10 flex gap-2 flex-wrap pointer-events-auto">
-        <button onClick={() => setMode('laptop')} className={`px-3 py-1 rounded-xl text-sm border ${mode === 'laptop' ? 'bg-blue-500 text-white' : 'bg-white/10 text-white border-white/10 hover:bg-white/15'}`}>Laptop</button>
-        <button onClick={() => setMode('donut')} className={`px-3 py-1 rounded-xl text-sm border ${mode === 'donut' ? 'bg-cyan-500 text-white' : 'bg-white/10 text-white border-white/10 hover:bg-white/15'}`}>Donut</button>
-        <button onClick={() => setMode('scatter')} className={`px-3 py-1 rounded-xl text-sm border ${mode === 'scatter' ? 'bg-violet-500 text-white' : 'bg-white/10 text-white border-white/10 hover:bg-white/15'}`}>Scatter</button>
-        <button onClick={() => setMode('logo')} className={`px-3 py-1 rounded-xl text-sm border ${mode === 'logo' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white border-white/10 hover:bg-white/15'}`}>Logo</button>
-        <ExportButton getObject={getExportObject} fileName={`${sanitize(title)}.glb`} />
+    <group ref={groupRef}>
+      <group ref={rot}>
+        {/* Desk */}
+        <mesh position={[0, -0.15, 0]}>
+          <boxGeometry args={[6.5, 0.2, 3.5]} />
+          <meshStandardMaterial color="#e2e8f0" metalness={0} roughness={0.8} />
+        </mesh>
+
+        {/* Monitors */}
+        {monitors.map((monitor, idx) => {
+          const texture = screenTextures[idx % screenTextures.length];
+          return (
+          <group key={idx} position={monitor.position} rotation={monitor.rotation}>
+            <mesh position={[0, -monitor.scale[1] / 2 - 0.2, 0]}>
+              <cylinderGeometry args={[0.08, 0.25, 0.4, 16]} />
+              <meshStandardMaterial color="#cbd5f5" metalness={0.3} roughness={0.4} />
+            </mesh>
+            <mesh>
+              <boxGeometry args={monitor.scale} />
+              <meshStandardMaterial color="#0f172a" />
+            </mesh>
+            <mesh position={[0, 0, 0.01]}>
+              <planeGeometry args={[monitor.scale[0] * 0.92, monitor.scale[1] * 0.85]} />
+              <meshBasicMaterial map={texture} toneMapped={false} />
+            </mesh>
+            {/* Widget bars */}
+            <group position={[-monitor.scale[0] * 0.35, 0.2, 0.02]}>
+              {chartBars.map((h, i) => (
+                <mesh key={i} position={[i * 0.25, -0.3 + h / 2, 0]}>
+                  <boxGeometry args={[0.18, h, 0.05]} />
+                  <meshStandardMaterial color={["#38bdf8", "#f97316", "#16a34a"][i % 3]} />
+                </mesh>
+              ))}
+            </group>
+            {/* Line graph */}
+            <Line points={linePoints} color="#fbbf24" lineWidth={2} />
+          </group>
+        )})}
+
+        {/* Keyboard */}
+        <mesh position={[0, 0.05, 0.4]}>
+          <boxGeometry args={[3, 0.08, 0.9]} />
+          <meshStandardMaterial color="#0f172a" />
+        </mesh>
+        {keyboardKeys.map((pos, idx) => (
+          <mesh key={idx} position={pos}>
+            <boxGeometry args={[0.16, 0.04, 0.1]} />
+            <meshStandardMaterial color="#1f2937" />
+          </mesh>
+        ))}
+
+        {/* Mouse */}
+        <group position={[1.8, 0.12, 0.55]}>
+          <mesh>
+            <cylinderGeometry args={[0.12, 0.12, 0.4, 24]} />
+            <meshStandardMaterial color="#111827" />
+          </mesh>
+          <mesh position={[0, 0.2, 0]}>
+            <sphereGeometry args={[0.12, 24, 16]} />
+            <meshStandardMaterial color="#111827" />
+          </mesh>
+          <mesh position={[0, -0.2, 0]}>
+            <sphereGeometry args={[0.12, 24, 16]} />
+            <meshStandardMaterial color="#111827" />
+          </mesh>
+        </group>
+
+        {/* Accessories */}
+        {accessories.map((item, idx) => (
+          <mesh key={idx} position={item.position}>
+            <boxGeometry args={item.scale} />
+            <meshStandardMaterial color={item.color} />
+          </mesh>
+        ))}
+
+        {/* Coffee cup */}
+        <group position={[0.6, 0.18, 1.1]}>
+          <mesh>
+            <cylinderGeometry args={[0.14, 0.12, 0.28, 24]} />
+            <meshStandardMaterial color="#f8fafc" roughness={0.4} />
+          </mesh>
+          <mesh position={[0.18, 0, 0]}>
+            <torusGeometry args={[0.12, 0.02, 16, 24]} />
+            <meshStandardMaterial color="#f8fafc" />
+          </mesh>
+        </group>
+      </group>
+    </group>
+  );
+}
+
+// ---------- Componente Principal (transparente + zoom limitado) ----------
+export default function Portfolio3DModelsAlt({ height = 580, width = "100%" }) {
+  const sceneRef = useRef();
+  const getExportObject = () => sceneRef.current;
+  const computedWidth = typeof width === "number" ? `${width}px` : width;
+
+  return (
+    <div
+      className="relative rounded-[32px] overflow-hidden w-full"
+      style={{ height, maxWidth: computedWidth }}
+    >
+      <div className="absolute top-4 right-4 z-10 pointer-events-auto">
+        <ExportButton getObject={getExportObject} fileName={`${sanitize("Workspace Desk")}.glb`} />
       </div>
 
-      <Canvas camera={{ position: [5, 3.8, 6], fov: 45 }} dpr={[1, 2]} gl={{ alpha: true }} style={{ background: 'transparent' }}>
+      <Canvas
+        camera={{ position: [8.5, 4.8, 9.5], fov: 38 }}
+        dpr={[1, 2]}
+        gl={{ alpha: true, preserveDrawingBuffer: true }}
+        style={{ background: 'transparent', width: '100%', height: '100%' }}
+      >
         {/* Luces */}
         <ambientLight intensity={0.6} />
         <directionalLight position={[5, 7, 3]} intensity={1.1} />
         <directionalLight position={[-5, -2, -3]} intensity={0.3} />
         <Environment preset="city" />
 
-        {/* Escena actual */}
-        <group ref={currentGroup}>
-          {mode === 'laptop' && <LaptopScene groupRef={currentGroup} />}
-          {mode === 'donut' && <DonutScene groupRef={currentGroup} />}
-          {mode === 'scatter' && <ScatterScene groupRef={currentGroup} />}
-          {mode === 'logo' && <LogoScene groupRef={currentGroup} text={logoText} />}
+        {/* Escena Workspace */}
+        <group>
+          <CommandCenterScene groupRef={sceneRef} />
         </group>
 
-        {/* Zoom súper controlado + sin pan para evitar perder encuadre */}
         <OrbitControls
           makeDefault
           enableDamping
           dampingFactor={0.08}
           enablePan={false}
-          minDistance={5}
-          maxDistance={7}
+          minDistance={6}
+          maxDistance={9}
           zoomSpeed={0.5}
-          target={[0, 0.8, 0]}
+          target={[0, 0.6, 0]}
         />
       </Canvas>
     </div>

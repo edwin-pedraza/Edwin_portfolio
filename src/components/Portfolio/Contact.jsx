@@ -7,9 +7,7 @@ import { EarthCanvas } from "./canvas";
 import { SectionWrapper } from "./hoc";
 import { slideIn, fadeIn } from "./utils/motion";
 
-// template_vzrlzhc
-// service_mns5l1d
-// /3a4LTokkbFElR1C_h
+
 const Contact = () => {
   const formRef = useRef();
   const [form, setForm] = useState({
@@ -68,9 +66,7 @@ const Contact = () => {
   };
 
   return (
-    <div
-      className={`xl:mt-1 flex  xl:flex-row flex-col-reverse gap-10 `}
-    >
+    <div className='xl:mt-1 flex xl:flex-row flex-col-reverse gap-10 relative z-10'>
       <motion.div
         variants={slideIn("left", "tween", 0.1, 1)}
         className='flex-1 flex-col bg-black-100 p-8 rounded-2xl'
