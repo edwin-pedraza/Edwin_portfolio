@@ -9,6 +9,7 @@ import { OrbitControls, Float, Environment, Line, Text } from "@react-three/drei
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { GLTFExporter } from "three-stdlib";
+import monitor1 from "../../../assets/monitor1.jpeg";
 
 // ---------- Utilidades ----------
 function useRotY(initialRotation = 0) {
@@ -228,7 +229,7 @@ function LogoScene({ groupRef, text = "EDWIN • DEV • DATA" }) {
 // ---------- Escena 5: Command Center (Dashboard Desk) ----------
 function CommandCenterScene({ groupRef }) {
   const rot = useRotY(-0.5);
-  const screenTextures = useMemo(() => {
+  const generatedTextures = useMemo(() => {
     const definitions = [
       { title: "Developer", subtitle: "UI builds & UX polish", accent: "#38bdf8" },
       { title: "Automation", subtitle: "QA & workflow bots", accent: "#f97316" },
@@ -237,11 +238,26 @@ function CommandCenterScene({ groupRef }) {
     return definitions.map((def) => createScreenTexture(def));
   }, []);
 
+  const monitorImageTexture = useMemo(() => {
+    const texture = new THREE.TextureLoader().load(monitor1);
+    texture.encoding = THREE.sRGBEncoding;
+    texture.anisotropy = 8;
+    texture.needsUpdate = true;
+    return texture;
+  }, []);
+
+  const screenTextures = useMemo(() => {
+    const textures = generatedTextures.slice(0, 3);
+    textures[0] = monitorImageTexture || textures[0];
+    return textures;
+  }, [generatedTextures, monitorImageTexture]);
+
   useEffect(() => {
     return () => {
-      screenTextures.forEach((texture) => texture.dispose());
+      generatedTextures.forEach((texture) => texture.dispose());
+      monitorImageTexture?.dispose();
     };
-  }, [screenTextures]);
+  }, [generatedTextures, monitorImageTexture]);
   const chartBars = useMemo(
     () => new Array(6).fill(0).map((_, i) => 0.3 + (i % 3) * 0.15 + Math.random() * 0.2),
     []
@@ -368,16 +384,13 @@ function CommandCenterScene({ groupRef }) {
 }
 
 // ---------- Componente Principal (transparente + zoom limitado) ----------
-export default function Portfolio3DModelsAlt({ height = 580, width = "100%" }) {
+export default function Portfolio3DModelsAlt({ height = 580, width = 700 }) {
   const sceneRef = useRef();
   const getExportObject = () => sceneRef.current;
   const computedWidth = typeof width === "number" ? `${width}px` : width;
 
   return (
-    <div
-      className="relative rounded-[32px] overflow-hidden w-full"
-      style={{ height, maxWidth: computedWidth }}
-    >
+    <div className="relative rounded-[32px] overflow-hidden" style={{ height, width: computedWidth }}>
       <div className="absolute top-4 right-4 z-10 pointer-events-auto">
         <ExportButton getObject={getExportObject} fileName={`${sanitize("Workspace Desk")}.glb`} />
       </div>

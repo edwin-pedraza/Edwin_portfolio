@@ -98,7 +98,7 @@ const Hero = () => {
           
         </div>
         <div className='flex-1 my-14 mx-4 sm:my-14 sm:mx-10 w-full max-w-[700px]'>
-          <Portfolio3DModels width="700px" initialMode={initialMode} logoText={logoText} />
+          <Portfolio3DModels initialMode={initialMode} logoText={logoText} />
         </div>
         <StarsCanvas/>
       </div>
