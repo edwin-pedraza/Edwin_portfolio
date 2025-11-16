@@ -1,12 +1,14 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Environment, useGLTF } from "@react-three/drei";
+import { OrbitControls, Environment, useGLTF, Line } from "@react-three/drei";
 import { Suspense, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFExporter } from "three-stdlib";
 
 const DESK_MODEL_URL = "/Desktop/desk portfolio2.glb";
 const MAX_SCENE_SIZE = 7;
-const DESK_BASE_ROTATION = Math.PI/-2; // rotate monitors to face the camera
+const DESK_BASE_ROTATION = Math.PI / -2; // rotate monitors to face the camera
+const SCREEN_KEYWORDS = ["plane004_1", "plane002_1", "plane002_2", "plane006_1", "plane006_2"];
+const HOVER_EMPHASIS = 1.12;
 
 function ExportButton({ getObject, fileName = "model.glb", className = "" }) {
   const onExport = () => {
@@ -41,11 +43,25 @@ function BlenderDeskScene({ groupRef, onHoverChange, scaleMultiplier = 1 }) {
   const { scene } = useGLTF(DESK_MODEL_URL);
   const [isHovered, setIsHovered] = useState(false);
   const hoverProgress = useRef(0);
+  const screenScalesRef = useRef(new Map());
+  const screenGlowRef = useRef(null);
+  const screenCenterRef = useRef(new THREE.Vector3());
+  const outlineRef = useRef(null);
+  const outlineSizeRef = useRef({ width: 5, depth: 2.5 });
+
+  const isScreenMesh = (object) => {
+    const name = object?.name?.replace(/\./g, "").toLowerCase() || "";
+    return SCREEN_KEYWORDS.some((keyword) => {
+      const normalizedKeyword = keyword.toLowerCase();
+      return name === normalizedKeyword || name.includes(normalizedKeyword);
+    });
+  };
 
   const preparedScene = useMemo(() => {
     if (!scene) return null;
 
     const clone = scene.clone(true);
+    screenScalesRef.current = new Map();
     const box = new THREE.Box3().setFromObject(clone);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
@@ -55,9 +71,17 @@ function BlenderDeskScene({ groupRef, onHoverChange, scaleMultiplier = 1 }) {
     const maxAxis = Math.max(size.x, size.y, size.z);
     const fitScale = maxAxis > MAX_SCENE_SIZE ? MAX_SCENE_SIZE / maxAxis : 1;
     clone.scale.setScalar(fitScale * scaleMultiplier);
+    outlineSizeRef.current = {
+      width: size.x * 1.18,
+      depth: size.z * 1.2,
+    };
+
+    const centerAccumulator = new THREE.Vector3();
+    let screenCount = 0;
 
     clone.traverse((child) => {
       if (child.isMesh) {
+        screenScalesRef.current.set(child.uuid, child.scale.clone());
         child.castShadow = true;
         child.receiveShadow = true;
         const materials = Array.isArray(child.material) ? child.material : [child.material];
@@ -68,7 +92,20 @@ function BlenderDeskScene({ groupRef, onHoverChange, scaleMultiplier = 1 }) {
           }
         });
       }
+
+      if (isScreenMesh(child)) {
+        const worldPos = new THREE.Vector3();
+        child.getWorldPosition(worldPos);
+        centerAccumulator.add(worldPos);
+        screenCount += 1;
+      }
     });
+
+    if (screenCount > 0) {
+      screenCenterRef.current.copy(centerAccumulator.divideScalar(screenCount));
+    } else {
+      screenCenterRef.current.set(0, 0.9, 0);
+    }
 
     return clone;
   }, [scene, scaleMultiplier]);
@@ -78,33 +115,99 @@ function BlenderDeskScene({ groupRef, onHoverChange, scaleMultiplier = 1 }) {
     hoverProgress.current = THREE.MathUtils.lerp(
       hoverProgress.current,
       isHovered ? 1 : 0,
-      0.12
+      0.08
     );
-    const bob = Math.sin(state.clock.getElapsedTime() * 2.4) * 0.05 * hoverProgress.current;
-    groupRef.current.position.y = -0.35 + hoverProgress.current * 0.18;
+    const bob = Math.sin(state.clock.getElapsedTime() * 1.8) * 0.04 * hoverProgress.current;
+    groupRef.current.position.y = -0.35 + hoverProgress.current * 0.15;
     groupRef.current.rotation.y = DESK_BASE_ROTATION + bob;
+
+    if (screenGlowRef.current) {
+      screenGlowRef.current.intensity = THREE.MathUtils.lerp(
+        screenGlowRef.current.intensity,
+        isHovered ? 1.8 : 0,
+        0.1
+      );
+    }
+
+    if (outlineRef.current) {
+      outlineRef.current.material.opacity = THREE.MathUtils.lerp(
+        outlineRef.current.material.opacity,
+        isHovered ? 0.9 : 0,
+        0.12
+      );
+      const scale = 1 + hoverProgress.current * 0.04;
+      outlineRef.current.scale.setScalar(scale);
+    }
   });
 
   if (!preparedScene) return null;
 
-  const handlePointerOver = () => {
+  const emphasizeMesh = (object, emphasize) => {
+    const originalScale = screenScalesRef.current.get(object.uuid);
+    if (!originalScale) return;
+    if (emphasize) {
+      object.scale.copy(originalScale).multiplyScalar(HOVER_EMPHASIS);
+    } else {
+      object.scale.copy(originalScale);
+    }
+  };
+
+  const handlePointerOver = (event) => {
+    const name = event.object?.name || "(sin nombre)";
+    console.log("[Desk Hover] pointer over:", name);
+    if (!isScreenMesh(event.object)) return;
+    emphasizeMesh(event.object, true);
     setIsHovered(true);
     onHoverChange?.(true);
   };
 
-  const handlePointerOut = () => {
+  const handlePointerOut = (event) => {
+    const name = event.object?.name || "(sin nombre)";
+    console.log("[Desk Hover] pointer out:", name);
+    if (!isScreenMesh(event.object)) return;
+    emphasizeMesh(event.object, false);
     setIsHovered(false);
     onHoverChange?.(false);
   };
 
+  const outlinePoints = useMemo(() => {
+    const { width, depth } = outlineSizeRef.current;
+    const halfW = width / 2;
+    const halfD = depth / 2;
+    return [
+      [-halfW, -0.02, -halfD],
+      [-halfW, -0.02, halfD],
+      [halfW, -0.02, halfD],
+      [halfW, -0.02, -halfD],
+      [-halfW, -0.02, -halfD],
+    ];
+  }, [preparedScene]);
+
   return (
-    <group
-      ref={groupRef}
-      position={[0, -0.35, 0]}
-      onPointerOver={handlePointerOver}
-      onPointerOut={handlePointerOut}
-    >
-      <primitive object={preparedScene} dispose={null} />
+    <group ref={groupRef} position={[0, -0.35, 0]}>
+      <pointLight
+        ref={screenGlowRef}
+        position={screenCenterRef.current}
+        color="#3bc9ff"
+        distance={4.8}
+        intensity={0}
+        decay={2}
+      />
+      <Line
+        ref={outlineRef}
+        points={outlinePoints}
+        color="#38bdf8"
+        lineWidth={2}
+        transparent
+        opacity={0}
+        dashed={false}
+      />
+      <primitive
+        object={preparedScene}
+        dispose={null}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+      />
     </group>
   );
 }
