@@ -1,6 +1,7 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, useGLTF, Line } from "@react-three/drei";
-import { Suspense, useMemo, useRef, useState } from "react";
+import { Suspense, useMemo, useRef, useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import * as THREE from "three";
 import { GLTFExporter } from "three-stdlib";
 
@@ -36,10 +37,21 @@ function ExportButton({ getObject, fileName = "model.glb", className = "" }) {
     </button>
   );
 }
+ExportButton.propTypes = {
+  getObject: PropTypes.func,
+  fileName: PropTypes.string,
+  className: PropTypes.string,
+};
 
-const sanitize = (s) => s.normalize("NFKD").replace(/[\/\\:*?"<>|]/g, "-").replace(/\s+/g, "_").toLowerCase();
+// Create a file-safe slug for downloads
+const sanitize = (s) =>
+  s
+    .normalize("NFKD")
+    .replace(/[\\/:*?"<>|]/g, "-")
+    .replace(/\s+/g, "_")
+    .toLowerCase();
 
-function BlenderDeskScene({ groupRef, onHoverChange, scaleMultiplier = 1 }) {
+function BlenderDeskScene({ groupRef, onHoverChange, onDebugChange, scaleMultiplier = 1 }) {
   const { scene } = useGLTF(DESK_MODEL_URL);
   const [isHovered, setIsHovered] = useState(false);
   const hoverProgress = useRef(0);
@@ -48,6 +60,7 @@ function BlenderDeskScene({ groupRef, onHoverChange, scaleMultiplier = 1 }) {
   const screenCenterRef = useRef(new THREE.Vector3());
   const outlineRef = useRef(null);
   const outlineSizeRef = useRef({ width: 5, depth: 2.5 });
+  const invalidMeshesRef = useRef([]);
 
   const isScreenMesh = (object) => {
     const name = object?.name?.replace(/\./g, "").toLowerCase() || "";
@@ -62,25 +75,64 @@ function BlenderDeskScene({ groupRef, onHoverChange, scaleMultiplier = 1 }) {
 
     const clone = scene.clone(true);
     screenScalesRef.current = new Map();
+    invalidMeshesRef.current = [];
     const box = new THREE.Box3().setFromObject(clone);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
-    clone.position.set(-center.x, -center.y + size.y / 2, -center.z);
+    // Fallbacks in case a bad geometry yields non-finite values
+    const safeSizeX = Number.isFinite(size.x) ? size.x : 5;
+    const safeSizeY = Number.isFinite(size.y) ? size.y : 2;
+    const safeSizeZ = Number.isFinite(size.z) ? size.z : 3;
+    const safeCenterX = Number.isFinite(center.x) ? center.x : 0;
+    const safeCenterY = Number.isFinite(center.y) ? center.y : 0;
+    const safeCenterZ = Number.isFinite(center.z) ? center.z : 0;
 
-    const maxAxis = Math.max(size.x, size.y, size.z);
+    clone.position.set(-safeCenterX, -safeCenterY + safeSizeY / 2, -safeCenterZ);
+
+    const maxAxis = Math.max(safeSizeX, safeSizeY, safeSizeZ);
     const fitScale = maxAxis > MAX_SCENE_SIZE ? MAX_SCENE_SIZE / maxAxis : 1;
     clone.scale.setScalar(fitScale * scaleMultiplier);
     outlineSizeRef.current = {
-      width: size.x * 1.18,
-      depth: size.z * 1.2,
+      width: safeSizeX * 1.18,
+      depth: safeSizeZ * 1.2,
     };
 
     const centerAccumulator = new THREE.Vector3();
     let screenCount = 0;
 
+    const isFiniteGeometry = (geom) => {
+      try {
+        if (!geom || !geom.attributes || !geom.attributes.position) return true;
+        const arr = geom.attributes.position.array;
+        // Sometimes position is not a Float32Array; coerce to a view we can iterate
+        const len = arr?.length || 0;
+        for (let i = 0; i < len; i++) {
+          const v = arr[i];
+          if (!Number.isFinite(v)) return false;
+        }
+        // Attempt a boundingSphere to force three.js to compute internals
+        geom.computeBoundingSphere();
+        return Number.isFinite(geom.boundingSphere?.radius);
+      } catch (_) {
+        return false;
+      }
+    };
+
     clone.traverse((child) => {
       if (child.isMesh) {
+        // Validate mesh geometry; hide if invalid to prevent NaN radius errors
+        const geom = child.geometry;
+        if (!isFiniteGeometry(geom)) {
+          const name = child.name || child.uuid;
+          console.warn('[Desk GLTF] Replacing invalid mesh with placeholder:', name);
+          invalidMeshesRef.current.push(name);
+          // Swap with a visible placeholder cube so the scene stays valid
+          const size = 0.15;
+          child.geometry = new THREE.BoxGeometry(size, size, size);
+          child.material = new THREE.MeshStandardMaterial({ color: '#ff6b6b', emissive: '#803333', roughness: 0.5, metalness: 0.1 });
+        }
+
         screenScalesRef.current.set(child.uuid, child.scale.clone());
         child.castShadow = true;
         child.receiveShadow = true;
@@ -110,12 +162,17 @@ function BlenderDeskScene({ groupRef, onHoverChange, scaleMultiplier = 1 }) {
     return clone;
   }, [scene, scaleMultiplier]);
 
+  // Publish debug info when the prepared scene changes
+  useEffect(() => {
+    onDebugChange?.(invalidMeshesRef.current.slice());
+  }, [preparedScene, onDebugChange]);
+
   useFrame((state) => {
     if (!groupRef.current) return;
     hoverProgress.current = THREE.MathUtils.lerp(
       hoverProgress.current,
       isHovered ? 1 : 0,
-      0.08
+      0.06
     );
     const bob = Math.sin(state.clock.getElapsedTime() * 1.8) * 0.04 * hoverProgress.current;
     groupRef.current.position.y = -0.35 + hoverProgress.current * 0.15;
@@ -125,7 +182,7 @@ function BlenderDeskScene({ groupRef, onHoverChange, scaleMultiplier = 1 }) {
       screenGlowRef.current.intensity = THREE.MathUtils.lerp(
         screenGlowRef.current.intensity,
         isHovered ? 1.8 : 0,
-        0.1
+        0.08
       );
     }
 
@@ -133,12 +190,31 @@ function BlenderDeskScene({ groupRef, onHoverChange, scaleMultiplier = 1 }) {
       outlineRef.current.material.opacity = THREE.MathUtils.lerp(
         outlineRef.current.material.opacity,
         isHovered ? 0.9 : 0,
-        0.12
+        0.08
       );
       const scale = 1 + hoverProgress.current * 0.04;
       outlineRef.current.scale.setScalar(scale);
     }
   });
+  // Derived outline path points (ensure hook is always called before any return)
+  // Calculate static outline points based on the last measured outline size.
+  // preparedScene isn't required here; we recompute only when BlenderDeskScene
+  // updates outlineSizeRef during preparation.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const outlinePoints = useMemo(() => {
+    const { width, depth } = outlineSizeRef.current;
+    const w = Number.isFinite(width) ? width : 5;
+    const d = Number.isFinite(depth) ? depth : 2.5;
+    const halfW = w / 2;
+    const halfD = d / 2;
+    return [
+      [-halfW, -0.02, -halfD],
+      [-halfW, -0.02, halfD],
+      [halfW, -0.02, halfD],
+      [halfW, -0.02, -halfD],
+      [-halfW, -0.02, -halfD],
+    ];
+  }, []);
 
   if (!preparedScene) return null;
 
@@ -158,7 +234,12 @@ function BlenderDeskScene({ groupRef, onHoverChange, scaleMultiplier = 1 }) {
     if (!isScreenMesh(event.object)) return;
     emphasizeMesh(event.object, true);
     setIsHovered(true);
-    onHoverChange?.(true);
+    // Build a friendly label from the object name
+    const base = name
+      .replace(/[_-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    onHoverChange?.(base);
   };
 
   const handlePointerOut = (event) => {
@@ -167,23 +248,11 @@ function BlenderDeskScene({ groupRef, onHoverChange, scaleMultiplier = 1 }) {
     if (!isScreenMesh(event.object)) return;
     emphasizeMesh(event.object, false);
     setIsHovered(false);
-    onHoverChange?.(false);
+    onHoverChange?.("");
   };
 
-  const outlinePoints = useMemo(() => {
-    const { width, depth } = outlineSizeRef.current;
-    const halfW = width / 2;
-    const halfD = depth / 2;
-    return [
-      [-halfW, -0.02, -halfD],
-      [-halfW, -0.02, halfD],
-      [halfW, -0.02, halfD],
-      [halfW, -0.02, -halfD],
-      [-halfW, -0.02, -halfD],
-    ];
-  }, [preparedScene]);
-
   return (
+    /* eslint-disable react/no-unknown-property */
     <group ref={groupRef} position={[0, -0.35, 0]}>
       <pointLight
         ref={screenGlowRef}
@@ -209,14 +278,22 @@ function BlenderDeskScene({ groupRef, onHoverChange, scaleMultiplier = 1 }) {
         onPointerOut={handlePointerOut}
       />
     </group>
+    /* eslint-enable react/no-unknown-property */
   );
 }
+BlenderDeskScene.propTypes = {
+  groupRef: PropTypes.shape({ current: PropTypes.any }),
+  onHoverChange: PropTypes.func,
+  onDebugChange: PropTypes.func,
+  scaleMultiplier: PropTypes.number,
+};
 
 useGLTF.preload(DESK_MODEL_URL);
 
 export default function Portfolio3DModels({ height = 580, width = 700, modelScale = 1 }) {
   const sceneRef = useRef();
-  const [isDeskHovered, setIsDeskHovered] = useState(false);
+  const [overlayLabel, setOverlayLabel] = useState("");
+  const [invalidMeshes, setInvalidMeshes] = useState([]);
   const getExportObject = () => sceneRef.current;
   const computedWidth = typeof width === "number" ? `${width}px` : width;
 
@@ -226,13 +303,28 @@ export default function Portfolio3DModels({ height = 580, width = 700, modelScal
         <ExportButton getObject={getExportObject} fileName={`${sanitize("blender desk")}.glb`} />
       </div>
 
+      {/* Top-center hover label aligned to the camera */}
       <div
-        className={`pointer-events-none absolute left-1/2 top-8 -translate-x-1/2 text-sm font-semibold text-white/90 bg-black/60 px-3 py-1 rounded-full transition-opacity duration-200 ${
-          isDeskHovered ? "opacity-100" : "opacity-0"
+        className={`pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 text-sm font-semibold text-white/90 bg-black/60 px-3 py-1 rounded-full transition-opacity duration-200 ${
+          overlayLabel ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        {isDeskHovered ? "Blender desk ready for work!" : "Hover the desk to see a tip"}
+        {overlayLabel}
       </div>
+
+      {/* Debug panel for invalid meshes */}
+      {invalidMeshes.length > 0 && (
+        <div className="absolute top-4 left-4 z-10 max-w-[280px] rounded-2xl border border-orange-300/50 bg-orange-50/90 px-3 py-2 text-xs text-orange-800 shadow">
+          <div className="font-semibold">GLTF issues</div>
+          <div className="mt-1">Replaced invalid meshes:</div>
+          <ul className="mt-1 list-disc pl-4">
+            {invalidMeshes.slice(0, 6).map((n) => (
+              <li key={n} className="truncate" title={n}>{n}</li>
+            ))}
+          </ul>
+          {invalidMeshes.length > 6 && <div className="mt-1">…and {invalidMeshes.length - 6} more</div>}
+        </div>
+      )}
 
       <Canvas
         shadows
@@ -241,6 +333,7 @@ export default function Portfolio3DModels({ height = 580, width = 700, modelScal
         gl={{ alpha: true, preserveDrawingBuffer: true }}
         style={{ background: "transparent", width: "100%", height: "100%" }}
       >
+        {/* eslint-disable react/no-unknown-property */}
         <ambientLight intensity={0.6} />
         <directionalLight position={[5, 7, 3]} intensity={1.1} />
         <directionalLight position={[-5, 2, -3]} intensity={0.4} />
@@ -249,7 +342,8 @@ export default function Portfolio3DModels({ height = 580, width = 700, modelScal
         <Suspense fallback={null}>
           <BlenderDeskScene
             groupRef={sceneRef}
-            onHoverChange={setIsDeskHovered}
+            onHoverChange={setOverlayLabel}
+            onDebugChange={setInvalidMeshes}
             scaleMultiplier={modelScale}
           />
         </Suspense>
@@ -269,7 +363,13 @@ export default function Portfolio3DModels({ height = 580, width = 700, modelScal
           zoomSpeed={0.45}
           target={[0, 0.2, 0]}
         />
+        {/* eslint-enable react/no-unknown-property */}
       </Canvas>
     </div>
   );
 }
+Portfolio3DModels.propTypes = {
+  height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  modelScale: PropTypes.number,
+};

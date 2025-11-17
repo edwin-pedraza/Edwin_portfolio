@@ -35,6 +35,12 @@ export const DEFAULT_BLOG_SETTINGS = Object.freeze({
     { label: 'Portfolio', url: '/react/' },
     { label: 'LinkedIn', url: 'https://linkedin.com/in/edwinpedraza' },
   ],
+  // Portfolio-specific: mapping GLTF mesh names -> friendly hover labels
+  deskLabels: [
+    { mesh: 'plane004_1', label: 'Left monitor' },
+    { mesh: 'plane002_1', label: 'Center monitor' },
+    { mesh: 'plane006_1', label: 'Right monitor' },
+  ],
 })
 
 export function normalizeHexColor(value, fallback = DEFAULT_ACCENT) {
@@ -76,6 +82,23 @@ export function normalizeContactLinks(links) {
     .filter((item) => item.label && item.url)
 }
 
+export function normalizeDeskLabels(items) {
+  if (!Array.isArray(items)) return DEFAULT_BLOG_SETTINGS.deskLabels
+  const cleaned = items
+    .map((it) => ({ mesh: String(it?.mesh ?? '').trim(), label: String(it?.label ?? '').trim() }))
+    .filter((it) => it.mesh && it.label)
+  // de-duplicate by mesh key (case-insensitive)
+  const seen = new Set()
+  const result = []
+  for (const it of cleaned) {
+    const key = it.mesh.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    result.push(it)
+  }
+  return result
+}
+
 export function normalizeBlogSettings(input = DEFAULT_BLOG_SETTINGS) {
   const normalized = {
     bannerUrl: input?.bannerUrl ? String(input.bannerUrl).trim() : '',
@@ -103,6 +126,7 @@ export function normalizeBlogSettings(input = DEFAULT_BLOG_SETTINGS) {
     contactEmail: input?.contactEmail ? String(input.contactEmail).trim() : DEFAULT_BLOG_SETTINGS.contactEmail,
     contactLocation: input?.contactLocation ? String(input.contactLocation).trim() : DEFAULT_BLOG_SETTINGS.contactLocation,
     contactLinks: normalizeContactLinks(input?.contactLinks),
+    deskLabels: normalizeDeskLabels(input?.deskLabels),
   }
   return normalized
 }
