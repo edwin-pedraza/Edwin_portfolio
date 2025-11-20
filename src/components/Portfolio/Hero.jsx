@@ -8,12 +8,14 @@ import {TbBrandNextjs} from "react-icons/tb"
 import {SiTailwindcss,SiFigma, SiSupabase} from "react-icons/si"
 import {BsGithub} from "react-icons/bs"
 import { useSupabaseQuery, parseList } from "../../supabase/hooks";
+import useBlogSettings from "../blog/useBlogSettings";
 
 
 const Hero = () => {
 
   const { data: profiles } = useSupabaseQuery('profile', { select: '*', orderBy: 'id' })
   const { data: heroRows } = useSupabaseQuery('hero_config', { select: '*', orderBy: 'created_at' })
+  const { blog: blogSettings } = useBlogSettings()
   const profile = Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : null
   const hero = Array.isArray(heroRows) && heroRows.length > 0 ? heroRows[0] : null
   const parsed = parseList(hero?.headline_words)
@@ -98,7 +100,11 @@ const Hero = () => {
           
         </div>
         <div className='flex-1 my-14 mx-4 sm:my-14 sm:mx-10 w-full max-w-[700px]'>
-          <Portfolio3DModels initialMode={initialMode} logoText={logoText} />
+          <Portfolio3DModels
+            initialMode={initialMode}
+            logoText={logoText}
+            deskLabels={blogSettings?.deskLabels}
+          />
         </div>
         <StarsCanvas/>
       </div>

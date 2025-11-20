@@ -476,44 +476,6 @@ function BlogLinksEditor({ links, onChange }) {
   )
 }
 
-function DeskLabelsEditor({ items, onChange }) {
-  function update(index, key, value) {
-    const next = items.map((it, idx) => (idx === index ? { ...it, [key]: value } : it))
-    onChange(next)
-  }
-  function add() {
-    onChange([...(items || []), { mesh: '', label: '' }])
-  }
-  function remove(index) {
-    onChange(items.filter((_, idx) => idx !== index))
-  }
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-slate-600 dark:text-slate-300">Portfolio desk labels</h4>
-        <button type="button" onClick={add} className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">Add label</button>
-      </div>
-      {(items || []).map((it, idx) => (
-        <div key={idx} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center">
-          <input
-            className="md:col-span-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
-            placeholder="GLTF mesh name (exact e.g., plane002_1)"
-            value={it.mesh}
-            onChange={(e) => update(idx, 'mesh', e.target.value)}
-          />
-          <input
-            className="md:col-span-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
-            placeholder="Label text (shown on hover)"
-            value={it.label}
-            onChange={(e) => update(idx, 'label', e.target.value)}
-          />
-          <button type="button" onClick={() => remove(idx)} className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">Remove</button>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 function BlogForm({ blogSettings, saving, accent, onPreview, onSave, onReset }) {
   const [inputs, setInputs] = useState(DEFAULT_BLOG_SETTINGS)
 
@@ -705,12 +667,6 @@ function BlogForm({ blogSettings, saving, accent, onPreview, onSave, onReset }) 
           links={inputs.contactLinks || []}
           onChange={(next) => update({ contactLinks: next })}
         />
-      </section>
-
-      <section className="space-y-4">
-        <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Portfolio</h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Map GLTF mesh names to your own hover labels. Names are case-insensitive.</p>
-        <DeskLabelsEditor items={inputs.deskLabels || []} onChange={(next) => update({ deskLabels: next })} />
       </section>
 
       <div className="flex flex-wrap items-center gap-3">

@@ -1,6 +1,6 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, useGLTF, Line } from "@react-three/drei";
-import { Suspense, useMemo, useRef, useState, useEffect } from "react";
+import { Suspense, useMemo, useRef, useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import * as THREE from "three";
 import { GLTFExporter } from "three-stdlib";
@@ -10,6 +10,20 @@ const MAX_SCENE_SIZE = 7;
 const DESK_BASE_ROTATION = Math.PI / -2; // rotate monitors to face the camera
 const SCREEN_KEYWORDS = ["plane004_1", "plane002_1", "plane002_2", "plane006_1", "plane006_2"];
 const HOVER_EMPHASIS = 1.12;
+
+const normalizeMeshKey = (name) =>
+  (name || "")
+    .toString()
+    .trim()
+    .replace(/[\s._-]+/g, "")
+    .replace(/\./g, "")
+    .toLowerCase();
+
+const fallbackLabelFromName = (name) =>
+  (name || "")
+    .replace(/[_-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
 function ExportButton({ getObject, fileName = "model.glb", className = "" }) {
   const onExport = () => {
@@ -51,7 +65,7 @@ const sanitize = (s) =>
     .replace(/\s+/g, "_")
     .toLowerCase();
 
-function BlenderDeskScene({ groupRef, onHoverChange, onDebugChange, scaleMultiplier = 1 }) {
+function BlenderDeskScene({ groupRef, onHoverChange, onDebugChange, scaleMultiplier = 1, getMeshLabel, hasCustomLabels }) {
   const { scene } = useGLTF(DESK_MODEL_URL);
   const [isHovered, setIsHovered] = useState(false);
   const hoverProgress = useRef(0);
@@ -234,12 +248,9 @@ function BlenderDeskScene({ groupRef, onHoverChange, onDebugChange, scaleMultipl
     if (!isScreenMesh(event.object)) return;
     emphasizeMesh(event.object, true);
     setIsHovered(true);
-    // Build a friendly label from the object name
-    const base = name
-      .replace(/[_-]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-    onHoverChange?.(base);
+    const customLabel = getMeshLabel?.(name);
+    const label = customLabel || (!hasCustomLabels ? fallbackLabelFromName(name) : "");
+    onHoverChange?.(label);
   };
 
   const handlePointerOut = (event) => {
@@ -286,16 +297,46 @@ BlenderDeskScene.propTypes = {
   onHoverChange: PropTypes.func,
   onDebugChange: PropTypes.func,
   scaleMultiplier: PropTypes.number,
+  getMeshLabel: PropTypes.func,
+  hasCustomLabels: PropTypes.bool,
 };
 
 useGLTF.preload(DESK_MODEL_URL);
 
-export default function Portfolio3DModels({ height = 580, width = 700, modelScale = 1 }) {
+export default function Portfolio3DModels({ height = 580, width = 700, modelScale = 1, deskLabels = [] }) {
   const sceneRef = useRef();
   const [overlayLabel, setOverlayLabel] = useState("");
   const [invalidMeshes, setInvalidMeshes] = useState([]);
   const getExportObject = () => sceneRef.current;
   const computedWidth = typeof width === "number" ? `${width}px` : width;
+  const labelMap = useMemo(() => {
+    const entries = Array.isArray(deskLabels) ? deskLabels : [];
+    return entries.reduce((map, item) => {
+      const meshKey = normalizeMeshKey(item?.mesh);
+      const labelText = typeof item?.label === "string" ? item.label.trim() : "";
+      if (meshKey && labelText && !map.has(meshKey)) {
+        map.set(meshKey, labelText);
+      }
+      return map;
+    }, new Map());
+  }, [deskLabels]);
+  const getMeshLabel = useCallback(
+    (rawName) => {
+      const key = normalizeMeshKey(rawName);
+      if (!key) return undefined;
+      const direct = labelMap.get(key);
+      if (direct) return direct;
+      for (const [meshKey, label] of labelMap.entries()) {
+        if (!meshKey) continue;
+        if (key.includes(meshKey) || meshKey.includes(key)) {
+          return label;
+        }
+      }
+      return undefined;
+    },
+    [labelMap]
+  );
+  const hasCustomLabels = labelMap.size > 0;
 
   return (
     <div className="relative rounded-[32px] overflow-hidden" style={{ height, width: computedWidth }}>
@@ -305,7 +346,7 @@ export default function Portfolio3DModels({ height = 580, width = 700, modelScal
 
       {/* Top-center hover label aligned to the camera */}
       <div
-        className={`pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 text-sm font-semibold text-white/90 bg-black/60 px-3 py-1 rounded-full transition-opacity duration-200 ${
+        className={`pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 text-sm font-semibold text-white/90 bg-black/70 px-4 py-2 rounded-2xl shadow-lg leading-snug text-left max-w-[90%] sm:max-w-[70%] transition-opacity duration-200 ${
           overlayLabel ? 'opacity-100' : 'opacity-0'
         }`}
       >
@@ -345,6 +386,8 @@ export default function Portfolio3DModels({ height = 580, width = 700, modelScal
             onHoverChange={setOverlayLabel}
             onDebugChange={setInvalidMeshes}
             scaleMultiplier={modelScale}
+            getMeshLabel={getMeshLabel}
+            hasCustomLabels={hasCustomLabels}
           />
         </Suspense>
 
@@ -372,4 +415,10 @@ Portfolio3DModels.propTypes = {
   height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   modelScale: PropTypes.number,
+  deskLabels: PropTypes.arrayOf(
+    PropTypes.shape({
+      mesh: PropTypes.string,
+      label: PropTypes.string,
+    })
+  ),
 };
