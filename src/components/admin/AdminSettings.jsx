@@ -6,7 +6,6 @@ import {
   DEFAULT_THEME_COLORS,
   DEFAULT_BLOG_SETTINGS,
   normalizeHexColor,
-  normalizeThemeColors,
   normalizeBlogSettings,
   isValidHexCandidate,
 } from './themeUtils'
@@ -588,6 +587,15 @@ function BlogForm({ blogSettings, saving, accent, onPreview, onSave, onReset }) 
 
       <section className="space-y-4">
         <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">About page</h3>
+        <ImageUploader
+          label="About image (optional)"
+          bucket="Postimg"
+          pathPrefix="about"
+          value={inputs.aboutImageUrl}
+          deletePrevious
+          onChange={(value) => update({ aboutImageUrl: value })}
+        />
+        <p className="text-xs text-slate-500 dark:text-slate-400">Uses Supabase Storage bucket “Postimg”. Ensure it exists and is public (or add policies).</p>
         <input
           value={inputs.aboutTitle}
           onChange={(event) => update({ aboutTitle: event.target.value })}
@@ -600,43 +608,31 @@ function BlogForm({ blogSettings, saving, accent, onPreview, onSave, onReset }) 
           accent={accent}
           placeholder="Tell your story — format with the toolbar above"
         />
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <ImageUploader
-              label="About image (optional)"
-              bucket="Postimg"
-              pathPrefix="about"
-              value={inputs.aboutImageUrl}
-              deletePrevious
-              onChange={(value) => update({ aboutImageUrl: value })}
-            />
-          </div>
-          <div className="space-y-3">
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Emphasis keywords (comma separated)</label>
-            <input
-              value={(inputs.aboutEmphasis || []).join(', ')}
-              onChange={(event) => update({ aboutEmphasis: event.target.value.split(',').map((s)=>s.trim()).filter(Boolean) })}
-              placeholder="Power BI, React, Supabase"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
-            />
-            <div className="flex gap-4 text-sm">
-              <label className="inline-flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={Boolean(inputs.aboutLargeText)}
-                  onChange={(e)=>update({ aboutLargeText: e.target.checked })}
-                />
-                Large intro text
-              </label>
-              <label className="inline-flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={Boolean(inputs.aboutAccentBackground)}
-                  onChange={(e)=>update({ aboutAccentBackground: e.target.checked })}
-                />
-                Accent background
-              </label>
-            </div>
+        <div className="space-y-3">
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Emphasis keywords (comma separated)</label>
+          <input
+            value={(inputs.aboutEmphasis || []).join(', ')}
+            onChange={(event) => update({ aboutEmphasis: event.target.value.split(',').map((s)=>s.trim()).filter(Boolean) })}
+            placeholder="Power BI, React, Supabase"
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+          />
+          <div className="flex gap-4 text-sm">
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={Boolean(inputs.aboutLargeText)}
+                onChange={(e)=>update({ aboutLargeText: e.target.checked })}
+              />
+              Large intro text
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={Boolean(inputs.aboutAccentBackground)}
+                onChange={(e)=>update({ aboutAccentBackground: e.target.checked })}
+              />
+              Accent background
+            </label>
           </div>
         </div>
       </section>

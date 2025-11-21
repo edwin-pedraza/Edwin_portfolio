@@ -2,7 +2,15 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../supabase/client'
 import { DEFAULT_BLOG_SETTINGS, normalizeBlogSettings } from './themeUtils'
 
-const MODES = ['laptop', 'donut', 'scatter', 'logo']
+const HERO_DEFAULTS = {
+  headline_words: 'Professional Coder.\nFull Stack Developer.\nUI Designer.',
+}
+
+const emptyProfile = {
+  full_name: '',
+  github_url: '',
+  linkedin_url: '',
+}
 
 function DeskLabelsEditor({ items, onChange }) {
   function update(index, key, value) {
@@ -21,7 +29,7 @@ function DeskLabelsEditor({ items, onChange }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-slate-600 dark:text-slate-300">Portfolio desk labels</h4>
+        <h4 className="text-sm font-medium text-slate-600 dark:text-slate-300">Desk labels</h4>
         <button
           type="button"
           onClick={add}
@@ -58,103 +66,148 @@ function DeskLabelsEditor({ items, onChange }) {
 }
 
 export default function AdminHero() {
-  const empty = {
-    default_mode: 'laptop',
-    logo_text: 'EDWIN - DEV - DATA',
-    headline_words: 'Professional Coder.\nFull Stack Developer.\nUI Designer.',
-  }
-  const [row, setRow] = useState(null)
-  const [form, setForm] = useState(empty)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [msg, setMsg] = useState('')
   const [deskLabels, setDeskLabels] = useState(DEFAULT_BLOG_SETTINGS.deskLabels)
-  const [deskLabelsSaving, setDeskLabelsSaving] = useState(false)
-  const [deskLabelsMsg, setDeskLabelsMsg] = useState('')
-  const [deskLabelsError, setDeskLabelsError] = useState('')
   const [settingsRowId, setSettingsRowId] = useState(null)
   const [blogSettings, setBlogSettings] = useState(DEFAULT_BLOG_SETTINGS)
+  const [deskSaveState, setDeskSaveState] = useState({ saving: false, message: '', error: '' })
 
-  async function fetchData() {
-    setLoading(true)
-    const [{ data: heroData }, { data: settingsData }] = await Promise.all([
-      supabase.from('hero_config').select('*').order('created_at').limit(1),
-      supabase.from('settings').select('id, blog').limit(1).maybeSingle(),
-    ])
-    const first = (heroData && heroData[0]) || null
-    setRow(first)
-    setForm({
-      default_mode: first?.default_mode || empty.default_mode,
-      logo_text: first?.logo_text || empty.logo_text,
-      headline_words: Array.isArray(first?.headline_words)
-        ? first.headline_words.join('\n')
-        : first?.headline_words || empty.headline_words,
-    })
-    const normalizedBlog = normalizeBlogSettings(settingsData?.blog || DEFAULT_BLOG_SETTINGS)
-    setBlogSettings(normalizedBlog)
-    setDeskLabels(normalizedBlog.deskLabels || [])
-    setSettingsRowId(settingsData?.id || null)
-    setLoading(false)
-  }
+  const [heroRow, setHeroRow] = useState(null)
+  const [heroForm, setHeroForm] = useState({ headline_words: HERO_DEFAULTS.headline_words })
+  const [heroMessage, setHeroMessage] = useState('')
+  const [heroError, setHeroError] = useState('')
+  const [heroSaving, setHeroSaving] = useState(false)
+
+  const [profileRow, setProfileRow] = useState(null)
+  const [profileForm, setProfileForm] = useState(emptyProfile)
+  const [profileMessage, setProfileMessage] = useState('')
+  const [profileError, setProfileError] = useState('')
+  const [profileSaving, setProfileSaving] = useState(false)
 
   useEffect(() => {
-    fetchData()
+    let cancelled = false
+    async function load() {
+      setLoading(true)
+      const [{ data, error }, { data: heroData, error: heroErr }, { data: profileData, error: profileErr }] = await Promise.all([
+        supabase.from('settings').select('id, blog').limit(1).maybeSingle(),
+        supabase.from('hero_config').select('*').order('created_at').limit(1),
+        supabase.from('profile').select('*').order('id').limit(1),
+      ])
+      if (cancelled) return
+      if (error) {
+        setDeskSaveState((prev) => ({ ...prev, error: error.message || 'Could not load desk labels' }))
+        setLoading(false)
+        return
+      }
+      if (heroErr) {
+        setHeroError(heroErr.message || 'Could not load hero settings')
+        setLoading(false)
+        return
+      }
+      if (profileErr) {
+        setProfileError(profileErr.message || 'Could not load profile info')
+        setLoading(false)
+        return
+      }
+      const normalized = normalizeBlogSettings(data?.blog || DEFAULT_BLOG_SETTINGS)
+      setBlogSettings(normalized)
+      setDeskLabels(normalized.deskLabels || [])
+      setSettingsRowId(data?.id || null)
+      const heroRowVal = Array.isArray(heroData) && heroData.length > 0 ? heroData[0] : null
+      setHeroRow(heroRowVal)
+      setHeroForm({
+        headline_words: Array.isArray(heroRowVal?.headline_words)
+          ? heroRowVal.headline_words.join('\n')
+          : heroRowVal?.headline_words || HERO_DEFAULTS.headline_words,
+      })
+      const profileVal = Array.isArray(profileData) && profileData.length > 0 ? profileData[0] : null
+      setProfileRow(profileVal)
+      setProfileForm({
+        full_name: profileVal?.full_name || '',
+        github_url: profileVal?.github_url || '',
+        linkedin_url: profileVal?.linkedin_url || '',
+      })
+      setLoading(false)
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
-  async function handleSave(e) {
-    e.preventDefault()
-    setSaving(true)
-    setMsg('')
-    const payload = {
-      default_mode: form.default_mode,
-      logo_text: form.logo_text || null,
-      headline_words: form.headline_words ? form.headline_words.split('\n').map((s) => s.trim()).filter(Boolean) : null,
-    }
-    if (row?.id) {
-      const { error } = await supabase.from('hero_config').update(payload).eq('id', row.id)
-      if (error) setMsg(`Update failed: ${error.message}`)
-      else {
-        setMsg('Updated')
-        fetchData()
-      }
-    } else {
-      const { error } = await supabase.from('hero_config').insert(payload)
-      if (error) setMsg(`Insert failed: ${error.message}`)
-      else {
-        setMsg('Inserted')
-        fetchData()
-      }
-    }
-    setSaving(false)
-  }
-
-  async function handleSaveDeskLabels(event) {
+  async function handleSave(event) {
     event.preventDefault()
-    setDeskLabelsSaving(true)
-    setDeskLabelsMsg('')
-    setDeskLabelsError('')
-    const normalized = normalizeBlogSettings({ ...blogSettings, deskLabels })
+    setDeskSaveState({ saving: true, message: '', error: '' })
+    const nextBlog = normalizeBlogSettings({ ...blogSettings, deskLabels })
     try {
       if (settingsRowId) {
-        const { error } = await supabase.from('settings').update({ blog: normalized }).eq('id', settingsRowId)
+        const { error } = await supabase.from('settings').update({ blog: nextBlog }).eq('id', settingsRowId)
         if (error) throw error
-        setDeskLabelsMsg('Desk labels updated')
       } else {
-        const { data, error } = await supabase
-          .from('settings')
-          .insert({ blog: normalized })
-          .select('id')
-          .single()
+        const { data, error } = await supabase.from('settings').insert({ blog: nextBlog }).select('id').single()
         if (error) throw error
         if (data?.id) setSettingsRowId(data.id)
-        setDeskLabelsMsg('Desk labels saved')
       }
-      setBlogSettings(normalized)
-      setDeskLabels(normalized.deskLabels)
-    } catch (error) {
-      setDeskLabelsError(error.message || 'Could not save desk labels')
+      setBlogSettings(nextBlog)
+      setDeskSaveState({ saving: false, message: 'Desk labels saved', error: '' })
+    } catch (err) {
+      setDeskSaveState({ saving: false, message: '', error: err.message || 'Could not save desk labels' })
+    }
+  }
+
+  async function handleHeroSave(event) {
+    event.preventDefault()
+    setHeroSaving(true)
+    setHeroMessage('')
+    setHeroError('')
+    const payload = {
+      headline_words: heroForm.headline_words
+        ? heroForm.headline_words.split('\n').map((line) => line.trim()).filter(Boolean)
+        : null,
+    }
+    try {
+      if (heroRow?.id) {
+        const { error } = await supabase.from('hero_config').update(payload).eq('id', heroRow.id)
+        if (error) throw error
+        setHeroMessage('Hero settings updated')
+      } else {
+        const { data, error } = await supabase.from('hero_config').insert(payload).select('*').single()
+        if (error) throw error
+        setHeroRow(data)
+        setHeroMessage('Hero settings saved')
+      }
+    } catch (err) {
+      setHeroError(err.message || 'Could not save hero settings')
     } finally {
-      setDeskLabelsSaving(false)
+      setHeroSaving(false)
+    }
+  }
+
+  async function handleProfileSave(event) {
+    event.preventDefault()
+    setProfileSaving(true)
+    setProfileMessage('')
+    setProfileError('')
+    const payload = {
+      full_name: profileForm.full_name || null,
+      github_url: profileForm.github_url || null,
+      linkedin_url: profileForm.linkedin_url || null,
+    }
+    try {
+      if (profileRow?.id) {
+        const { error } = await supabase.from('profile').update(payload).eq('id', profileRow.id)
+        if (error) throw error
+        setProfileMessage('Profile links updated')
+      } else {
+        const { data, error } = await supabase.from('profile').insert(payload).select('*').single()
+        if (error) throw error
+        setProfileRow(data)
+        setProfileMessage('Profile links saved')
+      }
+    } catch (err) {
+      setProfileError(err.message || 'Could not save profile links')
+    } finally {
+      setProfileSaving(false)
     }
   }
 
@@ -165,75 +218,87 @@ export default function AdminHero() {
         <div>Loading...</div>
       ) : (
         <div className="space-y-6">
-          <form
-            onSubmit={handleSave}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/60 p-5 rounded-xl border border-slate-200 shadow-sm"
-          >
-            <div>
-              <label className="block text-sm opacity-80 mb-1">Default 3D mode</label>
-              <select
-                className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
-                value={form.default_mode}
-                onChange={(e) => setForm({ ...form, default_mode: e.target.value })}
-              >
-                {MODES.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <input
-              className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
-              placeholder="Logo text (for 'logo' mode)"
-              value={form.logo_text}
-              onChange={(e) => setForm({ ...form, logo_text: e.target.value })}
-            />
-            <div className="md:col-span-2">
-              <label className="block text-sm opacity-80 mb-1">Headline words (typewriter) - one per line</label>
-              <textarea
-                className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
-                rows={5}
-                value={form.headline_words}
-                onChange={(e) => setForm({ ...form, headline_words: e.target.value })}
+          <form onSubmit={handleProfileSave} className="space-y-4 bg-white/60 p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div className="grid gap-4 md:grid-cols-2">
+              <input
+                value={profileForm.full_name}
+                onChange={(event) => setProfileForm((prev) => ({ ...prev, full_name: event.target.value }))}
+                placeholder="Name"
+                className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
+              />
+              <input
+                value={profileForm.github_url}
+                onChange={(event) => setProfileForm((prev) => ({ ...prev, github_url: event.target.value }))}
+                placeholder="GitHub URL"
+                className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
               />
             </div>
-            <div className="md:col-span-2 flex gap-2">
+            <input
+              value={profileForm.linkedin_url}
+              onChange={(event) => setProfileForm((prev) => ({ ...prev, linkedin_url: event.target.value }))}
+              placeholder="LinkedIn URL"
+              className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
+            />
+            <div className="flex flex-wrap items-center gap-3">
               <button
-                disabled={saving}
-                className="bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 text-white px-4 py-2 rounded"
                 type="submit"
+                disabled={profileSaving}
+                className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:bg-blue-600/50"
               >
-                {saving ? 'Saving...' : row?.id ? 'Update' : 'Create'}
+                {profileSaving ? 'Saving…' : 'Save hero links'}
               </button>
-              {msg && <div className="self-center text-sm opacity-80">{msg}</div>}
+              {(profileMessage || profileError) && (
+                <span className={`text-sm ${profileError ? 'text-rose-500' : 'text-emerald-600'}`}>{profileError || profileMessage}</span>
+              )}
             </div>
           </form>
 
-          <section className="bg-white/60 p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <div>
-              <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Portfolio</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Map GLTF mesh names to your hover labels for the hero workspace. Names are case-insensitive.
-              </p>
+          <form onSubmit={handleHeroSave} className="space-y-4 bg-white/60 p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-600 dark:text-slate-300">Headline words (typewriter) — one per line</label>
+              <textarea
+                rows={4}
+                value={heroForm.headline_words}
+                onChange={(event) => setHeroForm((prev) => ({ ...prev, headline_words: event.target.value }))}
+                className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
+                placeholder="Business Analytics\nProcess Automation"
+              />
             </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="submit"
+                disabled={heroSaving}
+                className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:bg-blue-600/50"
+              >
+                {heroSaving ? 'Saving…' : 'Save hero settings'}
+              </button>
+              {(heroMessage || heroError) && (
+                <span className={`text-sm ${heroError ? 'text-rose-500' : 'text-emerald-600'}`}>{heroError || heroMessage}</span>
+              )}
+            </div>
+          </form>
+
+          <form onSubmit={handleSave} className="space-y-4 bg-white/60 p-5 rounded-xl border border-slate-200 shadow-sm">
+            <p className="text-sm text-slate-600">
+              Map the GLTF mesh names from your 3D desk model to the hover labels that appear in the hero section. Use the
+              same mesh names you see in Blender or the GLB inspector.
+            </p>
             <DeskLabelsEditor items={deskLabels} onChange={setDeskLabels} />
             <div className="flex flex-wrap items-center gap-3">
               <button
-                type="button"
-                onClick={handleSaveDeskLabels}
-                disabled={deskLabelsSaving}
-                className="rounded-full px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-400"
+                type="submit"
+                disabled={deskSaveState.saving}
+                className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:bg-blue-600/50"
               >
-                {deskLabelsSaving ? 'Saving labels...' : 'Save desk labels'}
+                {deskSaveState.saving ? 'Saving…' : 'Save desk labels'}
               </button>
-              {(deskLabelsMsg || deskLabelsError) && (
-                <span className={`text-sm ${deskLabelsError ? 'text-rose-500' : 'text-emerald-600'}`}>
-                  {deskLabelsError || deskLabelsMsg}
+              {(deskSaveState.message || deskSaveState.error) && (
+                <span className={`text-sm ${deskSaveState.error ? 'text-rose-500' : 'text-emerald-600'}`}>
+                  {deskSaveState.error || deskSaveState.message}
                 </span>
               )}
             </div>
-          </section>
+          </form>
         </div>
       )}
     </div>

@@ -4,7 +4,6 @@ import { useLocation } from 'react-router-dom';
 import { 
   About,
   Contact,
-  // Feedbacks,
   Hero,
   Navbar,
   Tech,
@@ -42,7 +41,6 @@ const Home =() => {
         <Resume/>
         <Tech />
         <Works />
-        {/* <Feedbacks /> */}
      
       </div>
       <div className='relative'>

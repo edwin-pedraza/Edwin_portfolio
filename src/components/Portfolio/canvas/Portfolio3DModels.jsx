@@ -5,7 +5,14 @@ import PropTypes from "prop-types";
 import * as THREE from "three";
 import { GLTFExporter } from "three-stdlib";
 
-const DESK_MODEL_URL = "/Desktop/desk portfolio2.glb";
+const withBaseUrl = (path) => {
+  const base = import.meta.env.BASE_URL || "/";
+  const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${normalizedBase}${normalizedPath}`;
+};
+
+const DESK_MODEL_URL = withBaseUrl("/Desktop/desk portfolio2.glb");
 const MAX_SCENE_SIZE = 7;
 const DESK_BASE_ROTATION = Math.PI / -2; // rotate monitors to face the camera
 const SCREEN_KEYWORDS = ["plane004_1", "plane002_1", "plane002_2", "plane006_1", "plane006_2"];
@@ -214,7 +221,6 @@ function BlenderDeskScene({ groupRef, onHoverChange, onDebugChange, scaleMultipl
   // Calculate static outline points based on the last measured outline size.
   // preparedScene isn't required here; we recompute only when BlenderDeskScene
   // updates outlineSizeRef during preparation.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const outlinePoints = useMemo(() => {
     const { width, depth } = outlineSizeRef.current;
     const w = Number.isFinite(width) ? width : 5;
@@ -263,7 +269,6 @@ function BlenderDeskScene({ groupRef, onHoverChange, onDebugChange, scaleMultipl
   };
 
   return (
-    /* eslint-disable react/no-unknown-property */
     <group ref={groupRef} position={[0, -0.35, 0]}>
       <pointLight
         ref={screenGlowRef}
@@ -374,7 +379,6 @@ export default function Portfolio3DModels({ height = 580, width = 700, modelScal
         gl={{ alpha: true, preserveDrawingBuffer: true }}
         style={{ background: "transparent", width: "100%", height: "100%" }}
       >
-        {/* eslint-disable react/no-unknown-property */}
         <ambientLight intensity={0.6} />
         <directionalLight position={[5, 7, 3]} intensity={1.1} />
         <directionalLight position={[-5, 2, -3]} intensity={0.4} />

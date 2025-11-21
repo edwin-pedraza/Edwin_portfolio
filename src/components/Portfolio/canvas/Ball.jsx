@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
@@ -14,8 +15,8 @@ import CanvasLoader from "../Loader";
 const TRANSPARENT_PNG =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/ah3oXkAAAAASUVORK5CYII=";
 
-const Ball = (props) => {
-  const safeUrl = props.imgUrl || TRANSPARENT_PNG;
+const Ball = ({ imgUrl }) => {
+  const safeUrl = imgUrl || TRANSPARENT_PNG;
   const [decal] = useTexture([safeUrl]);
 
   return (
@@ -33,7 +34,7 @@ const Ball = (props) => {
           polygonOffsetFactor={-5}
           flatShading
         />
-        {props.imgUrl && (
+        {imgUrl && (
           <Decal
             position={[0, 0, 1]}
             rotation={[2 * Math.PI, 0, 6.25]}
@@ -47,22 +48,28 @@ const Ball = (props) => {
   );
 };
 
-const BallCanvas = ({ icon }) => {
-  return (
-    <Canvas
-      frameloop='demand'
-      dpr={[1, 2]}
-      gl={{ alpha: true, antialias: true }}
-      style={{ width: '100%', height: '100%' }}
-    >
-      <Suspense fallback={<CanvasLoader />}>
-        <OrbitControls enableZoom={false} />
-        <Ball imgUrl={icon} />
-      </Suspense>
+const BallCanvas = ({ icon }) => (
+  <Canvas
+    frameloop='demand'
+    dpr={[1, 2]}
+    gl={{ alpha: true, antialias: true }}
+    style={{ width: '100%', height: '100%' }}
+  >
+    <Suspense fallback={<CanvasLoader />}>
+      <OrbitControls enableZoom={false} />
+      <Ball imgUrl={icon} />
+    </Suspense>
 
-      <Preload all />
-    </Canvas>
-  );
-};
+    <Preload all />
+  </Canvas>
+);
 
 export default BallCanvas;
+
+Ball.propTypes = {
+  imgUrl: PropTypes.string,
+};
+
+BallCanvas.propTypes = {
+  icon: PropTypes.string,
+};

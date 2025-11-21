@@ -31,15 +31,15 @@ const allowedAdminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '')
 // Centralized section metadata used by sidebar and dashboard
 const SECTION_META = [
   { key: 'dashboard', label: 'Dashboard', description: 'Overview & quick access', category: 'both', actions: ['Jump to section'] },
-  { key: 'profile', label: 'Profile', description: 'Personal and contact info', category: 'portfolio', actions: ['Edit profile', 'Social links'] },
-  { key: 'hero', label: 'Hero', description: 'Landing headline and CTA', category: 'portfolio', actions: ['Edit headline', 'Change image'] },
+  { key: 'hero', label: 'Hero', description: 'Headline + desk labels', category: 'portfolio', actions: ['Edit labels'] },
+  { key: 'profile', label: 'About', description: 'Personal and contact info', category: 'portfolio', actions: ['Edit profile', 'Social links'] },
+  { key: 'service', label: 'Services', description: 'What you do', category: 'portfolio', actions: ['Add service', 'Edit copy'] },
   { key: 'education', label: 'Education', description: 'Resume - Education', category: 'portfolio', actions: ['Add school', 'Reorder items'] },
   { key: 'experience', label: 'Experience', description: 'Resume - Experience', category: 'portfolio', actions: ['Add role', 'Reorder items'] },
-  { key: 'service', label: 'Services', description: 'What you do', category: 'portfolio', actions: ['Add service', 'Edit copy'] },
   { key: 'technology', label: 'Technologies', description: 'Manage tech icons', category: 'portfolio', actions: ['Add icon', 'Reorder grid'] },
   { key: 'project', label: 'Projects', description: 'Manage and update projects', category: 'portfolio', actions: ['Add project', 'Update links'] },
-  { key: 'posts', label: 'Blog Posts', description: 'Write and publish posts', category: 'blog', actions: ['Write post', 'Manage tags'] },
   { key: 'testimonial', label: 'Testimonials', description: 'Client feedback', category: 'portfolio', actions: ['Add testimonial', 'Reorder items'] },
+  { key: 'posts', label: 'Blog Posts', description: 'Write and publish posts', category: 'blog', actions: ['Write post', 'Manage tags'] },
   { key: 'settings', label: 'Settings', description: 'Adjust branding colors', category: 'both', actions: ['Theme colors', 'Blog settings'] },
 ]
 
@@ -56,7 +56,10 @@ function SectionIcon({ name, className }) {
       )
     case 'hero':
       return (
-        <svg className={`${common} ${className || ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="6" rx="2"/><path d="M3 14h10M3 18h7"/></svg>
+        <svg className={`${common} ${className || ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 8h18M7 4h10M6 20h12" />
+          <rect x="5" y="8" width="14" height="10" rx="2" />
+        </svg>
       )
     case 'education':
       return (
@@ -137,7 +140,6 @@ function createAccentPalette(themeColors, theme) {
   const { base, button, logo, lightShell, darkShell } = normalized
 
   const baseRgb = hexToRgb(base)
-  const buttonRgb = button ? hexToRgb(button) : baseRgb
   const logoRgb = logo ? hexToRgb(logo) : baseRgb
 
   const baseContrast = getReadableTextColor(base)
@@ -477,8 +479,6 @@ export default function Admin() {
   function handleThemeSelection(nextTheme) {
     setTheme(nextTheme)
   }
-
-  const adminConfigured = useMemo(() => allowedAdminEmails.length > 0, [])
 
   function getUserAvatarInfo() {
     const meta = session?.user?.user_metadata || {}

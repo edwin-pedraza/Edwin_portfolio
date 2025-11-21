@@ -11,7 +11,11 @@ export default function RichTextEditor({ value, onChange, accent, placeholder = 
     const el = editorRef.current
     if (!el) return
     // Ensure paragraphs are created on Enter for predictable editing
-    try { document.execCommand('defaultParagraphSeparator', false, 'p') } catch (_) {}
+    try {
+      document.execCommand('defaultParagraphSeparator', false, 'p')
+    } catch (error) {
+      console.warn('RichTextEditor: default paragraph separator unsupported', error)
+    }
     // Only update if different to avoid moving caret
     if (el.innerHTML !== (value || '')) {
       el.innerHTML = value || ''

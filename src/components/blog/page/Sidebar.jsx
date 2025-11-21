@@ -12,6 +12,7 @@ export default function Sidebar({ posts = [], onSelectCategory, activeCategory, 
     return Array.from(base)
   }, [posts, strategy])
   const categoryList = tags.length ? tags : ['General']
+  const selectedCategory = activeCategory || categoryList[0]
 
   return (
     <aside className="space-y-6">
@@ -33,11 +34,21 @@ export default function Sidebar({ posts = [], onSelectCategory, activeCategory, 
       <div className="rounded-2xl border border-white/60 bg-white/70 p-6 shadow-lg backdrop-blur">
         <div className="text-sm font-semibold text-slate-900">Categories</div>
         <div className="mt-3 flex flex-wrap gap-2">
-          {categoryList.map((label) => (
-            <span key={`sidebar-cat-${label}`} className="inline-flex items-center rounded-full bg-slate-900/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
-              {label}
-            </span>
-          ))}
+          {categoryList.map((label) => {
+            const isActive = selectedCategory === label
+            return (
+              <button
+                type="button"
+                key={`sidebar-cat-${label}`}
+                onClick={() => onSelectCategory?.(label)}
+                className={`inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition ${
+                  isActive ? 'bg-slate-900 text-white shadow' : 'bg-slate-900/5 text-slate-700 hover:bg-slate-900/10'
+                }`}
+              >
+                {label}
+              </button>
+            )
+          })}
         </div>
       </div>
 

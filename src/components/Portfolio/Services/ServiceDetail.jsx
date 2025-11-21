@@ -29,7 +29,7 @@ const normalizeService = (service = {}) => {
       "Detailed information coming soon.",
     focusAreas: parseList(service.focusAreas || service.focus_areas || service.highlights),
     toolset: parseList(service.toolset || service.tools || service.toolset_list),
-    cta: service.cta || service.cta_text || "Let's build something great together.",
+    cta: service.cta || service.cta_text || "Let’s build something great together.",
   };
 };
 
@@ -53,7 +53,7 @@ const ServiceDetail = () => {
     if (!service)
       return (
         <div className="mt-10 space-y-6">
-          <p className="text-secondary">We couldn't find the service you're looking for.</p>
+          <p className="text-secondary">We couldn’t find the service you’re looking for.</p>
           <Link to="/react" className="text-sm text-white underline underline-offset-4">
             Return to the homepage
           </Link>

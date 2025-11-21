@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
 import { listPosts, createPost, updatePost, deletePost as deletePostById } from '../../supabase/posts'
-import { supabase } from '../../supabase/client'
 import sanitizeHtml from '../../utils/sanitizeHtml'
 import ImageUploader from './ImageUploader'
 import FileUploader from './FileUploader'

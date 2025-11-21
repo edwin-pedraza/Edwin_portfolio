@@ -71,7 +71,7 @@ export default function ImageUploader({ label = 'Image', bucket = DEFAULT_BUCKET
         <button type="button" disabled={!file || busy} onClick={handleUpload} className="rounded-full bg-emerald-600 px-3 py-1.5 text-white shadow-sm disabled:bg-emerald-600/50">{busy ? 'Uploading…' : 'Upload to Storage'}</button>
         {msg && <span className="text-xs text-slate-500">{msg}</span>}
       </div>
-      <div className="text-xs opacity-70">Uses Supabase Storage bucket "{bucket}". Ensure it exists and is public (or add policies).</div>
+      <div className="text-xs opacity-70">Uses Supabase Storage bucket “{bucket}”. Ensure it exists and is public (or add policies).</div>
     </div>
   )
 }

@@ -1,9 +1,6 @@
-import  {  useState } from 'react'
-import { IoSearchOutline } from "react-icons/io5";
-import { supabase } from "../../../supabase/client";
+import { useState } from 'react'
 
-
-function Search({selectedTag}) {
+function Search({ selectedTag }) {
     const tags=[
         {
             id:1,

@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { Tilt } from "react-tilt";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -117,3 +118,10 @@ const About = () => {
 };
 
 export default SectionWrapper(About, "about");
+
+ServiceCard.propTypes = {
+  index: PropTypes.number.isRequired,
+  title: PropTypes.string,
+  icon: PropTypes.string,
+  slug: PropTypes.string,
+};

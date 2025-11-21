@@ -4,12 +4,10 @@ import { styles } from "../../styles";
 import { Portfolio3DModels, StarsCanvas } from "./canvas";
 import { useTypewriter, Cursor } from "react-simple-typewriter";
 import { FaLinkedinIn, FaReact } from "react-icons/fa";
-import {TbBrandNextjs} from "react-icons/tb"
-import {SiTailwindcss,SiFigma, SiSupabase} from "react-icons/si"
-import {BsGithub} from "react-icons/bs"
+import { SiTailwindcss, SiSupabase } from "react-icons/si";
+import { BsGithub } from "react-icons/bs";
 import { useSupabaseQuery, parseList } from "../../supabase/hooks";
 import useBlogSettings from "../blog/useBlogSettings";
-
 
 const Hero = () => {
 
@@ -32,8 +30,8 @@ const Hero = () => {
   const displayName = profile?.full_name || 'Edwin'
   const githubUrl = profile?.github_url || 'https://github.com/edwin-pedraza'
   const linkedinUrl = profile?.linkedin_url || 'https://www.linkedin.com/in/edwin-y-pedraza-b-/'
-  const initialMode = hero?.default_mode || 'workspace'
-  const logoText = hero?.logo_text || 'EDWIN - DEV - DATA'
+  const initialMode = 'workspace'
+  const logoText = 'EDWIN - DEV - DATA'
 
   return (
     <section className={`relative w-full h-[90vh] mx-auto`}>

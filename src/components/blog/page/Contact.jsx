@@ -59,9 +59,9 @@ export default function Contact({ blogSettings }) {
   return (
     <section className="bg-white rounded-3xl shadow-sm border border-slate-200 px-8 py-10 md:px-12 space-y-8">
       <div>
-        <h1 className="text-3xl font-semibold text-slate-900">Let's connect</h1>
+        <h1 className="text-3xl font-semibold text-slate-900">Let’s connect</h1>
         <p className="mt-3 text-slate-600 max-w-2xl">
-          {contact.contactHeadline || "Have a project in mind or just want to say hi? Drop a note and I'll get back within two working days."}
+          {contact.contactHeadline || "Have a project in mind or just want to say hi? Drop a note and I’ll get back within two working days."}
         </p>
       </div>
       <div className="grid gap-8 lg:grid-cols-2">
@@ -140,6 +140,7 @@ export default function Contact({ blogSettings }) {
     </section>
   )
 }
+
 Contact.propTypes = {
   blogSettings: PropTypes.shape({
     contactHeadline: PropTypes.string,

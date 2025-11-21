@@ -33,11 +33,13 @@ export function useSupabaseQuery(table, { select = '*', orderBy, ascending = tru
 export function parseList(value) {
   if (!value) return []
   if (Array.isArray(value)) return value
+  let parsed = null
   try {
-    const parsed = JSON.parse(value)
-    if (Array.isArray(parsed)) return parsed
-  } catch (_) {}
+    parsed = JSON.parse(value)
+  } catch (_) {
+    parsed = null
+  }
+  if (Array.isArray(parsed)) return parsed
   if (typeof value === 'string') return value.split('\n').map((s) => s.trim()).filter(Boolean)
   return []
 }
-

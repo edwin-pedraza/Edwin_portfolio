@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import { Suspense, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Preload, Float, Decal, useTexture, Environment } from '@react-three/drei'
@@ -58,3 +59,18 @@ export default function TechBalls({ items = [], columns = 6, cell = 3.2, heightP
   )
 }
 
+BallNode.propTypes = {
+  icon: PropTypes.string,
+}
+
+TechBalls.propTypes = {
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string,
+      icon: PropTypes.string,
+    })
+  ),
+  columns: PropTypes.number,
+  cell: PropTypes.number,
+  heightPerRow: PropTypes.number,
+}
