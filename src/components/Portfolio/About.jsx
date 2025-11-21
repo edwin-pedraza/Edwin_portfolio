@@ -26,6 +26,9 @@ const ServiceCard = ({ index, title, icon, slug }) => {
     <Tilt className="sm:w-[250px] w-full flex-wrap justify-center">
       <motion.div
         variants={fadeIn("right", "spring", 0.5 * index, 0.75)}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.45 }}
         className="w-full green-pink-gradient p-[1px] rounded-[20px] shadow-card"
       >
         <Link

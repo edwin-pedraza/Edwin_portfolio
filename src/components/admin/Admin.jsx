@@ -31,7 +31,7 @@ const allowedAdminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '')
 // Centralized section metadata used by sidebar and dashboard
 const SECTION_META = [
   { key: 'dashboard', label: 'Dashboard', description: 'Overview & quick access', category: 'both', actions: ['Jump to section'] },
-  { key: 'hero', label: 'Hero', description: 'Headline + desk labels', category: 'portfolio', actions: ['Edit labels'] },
+  { key: 'hero', label: 'Hero', description: 'Headline + desk labels', category: 'portfolio', actions: ['Edit hero'] },
   { key: 'profile', label: 'About', description: 'Personal and contact info', category: 'portfolio', actions: ['Edit profile', 'Social links'] },
   { key: 'service', label: 'Services', description: 'What you do', category: 'portfolio', actions: ['Add service', 'Edit copy'] },
   { key: 'education', label: 'Education', description: 'Resume - Education', category: 'portfolio', actions: ['Add school', 'Reorder items'] },
