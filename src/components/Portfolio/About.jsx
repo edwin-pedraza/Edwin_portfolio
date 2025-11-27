@@ -32,7 +32,7 @@ const ServiceCard = ({ index, title, icon, slug }) => {
         className="w-full green-pink-gradient p-[1px] rounded-[20px] shadow-card"
       >
         <Link
-          to={`/react/services/${targetSlug}`}
+          to={`/services/${targetSlug}`}
           className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#915EFF] rounded-[20px]"
         >
           <div className="bg-tertiary rounded-[20px] py-5 px-12 min-h-[280px] flex justify-evenly items-center flex-col">

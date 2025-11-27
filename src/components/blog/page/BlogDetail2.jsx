@@ -196,7 +196,7 @@ useEffect(() => {
   async function handleDelete() {
     if (!confirm('Delete this post?')) return
     const { error } = await supabase.from('post').delete().eq('id', id)
-    if (!error) navigate('/react/blog')
+    if (!error) navigate('/blog')
   }
 
   function addGalleryImageSlot() {
@@ -310,7 +310,7 @@ useEffect(() => {
       </div>
 
       <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
-        <button onClick={() => navigate('/react/blog')} className="text-sm font-medium text-sky-600 hover:text-sky-500">Back to Blog</button>
+        <button onClick={() => navigate('/blog')} className="text-sm font-medium text-sky-600 hover:text-sky-500">Back to Blog</button>
 
         <div className="mt-6 flex items-center justify-between rounded-2xl border border-white/50 bg-white/70 px-5 py-4 shadow-lg backdrop-blur">
           <div className="text-sm text-slate-600">
@@ -551,7 +551,7 @@ useEffect(() => {
         <div className="mt-12 grid gap-4 md:grid-cols-2">
           {prevNext.prev && (
             <button
-              onClick={() => navigate(`/react/blog/blog-detail/${prevNext.prev.id}`)}
+              onClick={() => navigate(`/blog/blog-detail/${prevNext.prev.id}`)}
               aria-label="Previous post"
               className="group flex items-center gap-4 rounded-2xl border border-white/50 bg-white/70 p-4 text-left shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:border-white/60 hover:shadow-xl"
             >
@@ -568,7 +568,7 @@ useEffect(() => {
           )}
           {prevNext.next && (
             <button
-              onClick={() => navigate(`/react/blog/blog-detail/${prevNext.next.id}`)}
+              onClick={() => navigate(`/blog/blog-detail/${prevNext.next.id}`)}
               aria-label="Next post"
               className="group flex items-center justify-end gap-4 rounded-2xl border border-white/50 bg-white/70 p-4 text-right shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:border-white/60 hover:shadow-xl"
             >
@@ -592,7 +592,7 @@ useEffect(() => {
               {related.map((item) => (
                 <article
                   key={item.id}
-                  onClick={() => navigate(`/react/blog/blog-detail/${item.id}`)}
+                  onClick={() => navigate(`/blog/blog-detail/${item.id}`)}
                   className="group cursor-pointer overflow-hidden rounded-2xl border border-white/50 bg-white/70 shadow-lg backdrop-blur transition hover:-translate-y-1 hover:border-white/60 hover:shadow-xl"
                 >
                   {item.cover_url && <img src={item.cover_url} alt={item.title} className="h-36 w-full object-cover" />}

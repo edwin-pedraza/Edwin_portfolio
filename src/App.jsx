@@ -17,12 +17,12 @@ const App =() => {
     
       
       <Routes>
-        <Route path='/react' element = {< Home/>}/>
-        <Route path='/react/blog/*' element = {< Blog/>}/>
-        <Route path='/react/blog/blog-detail/:id' element={<BlogDetail/>} />
-        <Route path='/react/admin' element = {< Admin/>}/>
-        <Route path='/react/services/:slug' element={<ServiceDetail />} />
-        {/* <Route path='/react/login' element = {< Blog/>}/> */}
+        <Route path='/' element = {< Home/>}/>
+        <Route path='/blog/*' element = {< Blog/>}/>
+        <Route path='/blog/blog-detail/:id' element={<BlogDetail/>} />
+        <Route path='/admin' element = {< Admin/>}/>
+        <Route path='/services/:slug' element={<ServiceDetail />} />
+        {/* <Route path='/login' element = {< Blog/>}/> */}
       </Routes>
     </>
     

@@ -54,7 +54,7 @@ const ServiceDetail = () => {
       return (
         <div className="mt-10 space-y-6">
           <p className="text-secondary">We couldn’t find the service you’re looking for.</p>
-          <Link to="/react" className="text-sm text-white underline underline-offset-4">
+          <Link to="/" className="text-sm text-white underline underline-offset-4">
             Return to the homepage
           </Link>
         </div>
@@ -118,7 +118,7 @@ const ServiceDetail = () => {
             <p className="text-secondary mt-2">Service overview</p>
           </div>
           <Link
-            to="/react#contact"
+            to="/#contact"
             className="w-full text-center py-3 rounded-full bg-gradient-to-r from-[#915EFF] to-[#70FFAE] text-white font-semibold"
           >
             Talk to me

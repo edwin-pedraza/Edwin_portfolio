@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import logo from '../../../assets/LogoEdwin.svg'
 import { supabase } from '../../../supabase/client'
+import { withBase } from '../../../utils/basePath'
 
 const navItems = [
-  { to: '/react/blog', label: 'Home', end: true },
-  { to: '/react/blog/about', label: 'About' },
-  { to: '/react/blog/contact', label: 'Contact' },
-  { to: '/react/', label: 'Portfolio' },
+  { to: '/blog', label: 'Home', end: true },
+  { to: '/blog/about', label: 'About' },
+  { to: '/blog/contact', label: 'Contact' },
+  { to: '/', label: 'Portfolio' },
 ]
 
 export default function Header({ accent }) {
@@ -19,7 +20,7 @@ export default function Header({ accent }) {
   const [msg, setMsg] = useState('')
   const [session, setSession] = useState(null)
 
-  const redirectTo = `${window.location.origin}/react/blog`
+  const redirectTo = `${window.location.origin}${withBase('/blog')}`
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -95,7 +96,7 @@ export default function Header({ accent }) {
       ))}
         {session && (
           <button
-            onClick={() => navigate('/react/blog/create')}
+            onClick={() => navigate('/blog/create')}
             className="rounded-full bg-sky-500 px-3 py-1 text-white shadow hover:bg-sky-400"
           >
             New post

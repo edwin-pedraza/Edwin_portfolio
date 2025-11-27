@@ -6,11 +6,13 @@ import { fadeIn } from "../utils/motion";
 import { github, webIcon } from "../../../assets";
 import ModelPreview from "./ModelPreview";
 import { styles } from "../../../styles";
+import { withBase } from "../../../utils/basePath";
 
 const openLink = (url) => {
   if (!url) return;
-  if (url.startsWith("/react/blog/")) {
-    window.location.href = url;
+  const normalized = url.startsWith("/react/") ? url.replace("/react", "") : url;
+  if (normalized.startsWith("/blog/")) {
+    window.location.href = withBase(normalized);
   } else {
     window.open(url, "_blank", "noopener,noreferrer");
   }
@@ -64,7 +66,7 @@ export default function ProjectCard({
                 className="black-gradient w-10 h-10 rounded-full flex justify-center items-center cursor-pointer text-white text-sm font-semibold"
                 aria-label="Open project"
               >
-                {sourceLinkWeb.startsWith("/react/blog/") ? (
+                { (sourceLinkWeb.startsWith("/react/blog/") || sourceLinkWeb.startsWith("/blog/")) ? (
                   <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M10 13a4 4 0 0 1 0-5.66l2.12-2.12a4 4 0 0 1 5.66 5.66l-1.2 1.2" />
                     <path d="M14 11a4 4 0 0 1 0 5.66l-2.12 2.12a4 4 0 0 1-5.66-5.66l1.2-1.2" />

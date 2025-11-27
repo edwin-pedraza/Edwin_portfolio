@@ -268,7 +268,7 @@ const projects = [
     ],
     image: carrent,
     source_code_link: "https://github.com/edwin-pedraza/React_portafoliopapp",
-    source_link_web: "https://edwin-pedraza.github.io/react/Project/portfolio/build/index.html",
+    source_link_web: "https://edwin-pedraza.github.io/Edwin_portfolio/Project/portfolio/build/index.html",
   },
 ];
 

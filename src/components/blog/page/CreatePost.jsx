@@ -44,7 +44,7 @@ export default function CreatePost() {
     if (error) {
       setMsg(error.message)
     } else if (data?.id) {
-      navigate(`/react/blog/blog-detail/${data.id}`)
+      navigate(`/blog/blog-detail/${data.id}`)
     }
     setSaving(false)
   }
