@@ -20,7 +20,8 @@ export default function Header({ accent }) {
   const [msg, setMsg] = useState('')
   const [session, setSession] = useState(null)
 
-  const redirectTo = `${window.location.origin}${withBase('/blog')}`
+  const publicSiteUrl = (import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/$/, '')
+  const redirectTo = `${publicSiteUrl}${withBase('/blog')}`
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {

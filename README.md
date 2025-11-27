@@ -20,6 +20,18 @@ npm run deploy     # publish dist/ to GitHub Pages
 ```
 The app serves at `/` in dev and `/Edwin_portfolio/` in production (see `vite.config.js` base).
 
+## Environment
+Create `.env.local` (not committed) with:
+```
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+VITE_SUPABASE_BUCKET=portfolio          # optional; defaults to "portfolio"
+VITE_ADMIN_EMAILS=you@example.com       # comma-separated list for admin access
+VITE_SITE_URL=https://edwin-pedraza.github.io/Edwin_portfolio  # public URL for magic-link redirects
+VITE_EMAILJS_SERVICE_ID=...
+VITE_EMAILJS_TEMPLATE_ID=...
+VITE_EMAILJS_PUBLIC_KEY=...
+```
 Supabase setup: ensure the referenced bucket exists and is public (or add storage policies). Schema and policies are under `supabase/` SQL files.
 
 ## Project structure

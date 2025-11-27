@@ -366,6 +366,7 @@ export default function Admin() {
     setSending(true)
     setMsg('')
     const normalizedEmail = email.trim().toLowerCase()
+    const publicSiteUrl = (import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/$/, '')
 
     if (!allowedAdminEmails.length) {
       setMsg('Admin access is not configured. Set VITE_ADMIN_EMAILS and reload the page.')
@@ -379,7 +380,7 @@ export default function Admin() {
       return
     }
 
-    const redirectTo = window.location.origin + withBase('/admin')
+    const redirectTo = publicSiteUrl + withBase('/admin')
     const { error } = await supabase.auth.signInWithOtp({ email: normalizedEmail, options: { emailRedirectTo: redirectTo } })
     if (error) setMsg('Could not send login link'); else setMsg('Check your email for the login link')
     setSending(false)
