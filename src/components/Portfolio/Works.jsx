@@ -39,7 +39,7 @@ const Works = () => {
         .filter((post) => post.portfolio_featured)
         .map((post) => {
           const tags = combineTagSources(post.tag, post.tech_tags).map((name) => ({ name, color: 'text-secondary' }))
-          const blogLink = `/react/blog/blog-detail/${post.id}`
+          const blogLink = `/blog/blog-detail/${post.id}`
           return {
             name: post.title,
             description: post.excerpt || 'Featured blog project',

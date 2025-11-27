@@ -85,7 +85,7 @@ export default function Home({ blogSettings, loading, accent, themeColors }) {
         <div className="fixed bottom-6 right-6">
           <button
             className="rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg hover:bg-sky-400"
-            onClick={() => navigate('/react/blog/create')}
+            onClick={() => navigate('/blog/create')}
           >
             New post
           </button>

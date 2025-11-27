@@ -18,7 +18,7 @@ npm run preview    # preview the built app
 npm run lint       # eslint for js/jsx
 npm run deploy     # publish dist/ to GitHub Pages
 ```
-The app serves at `/` in dev and `/react/` in production (see `vite.config.js` base).
+The app serves at `/` in dev and `/Edwin_portfolio/` in production (see `vite.config.js` base).
 
 Supabase setup: ensure the referenced bucket exists and is public (or add storage policies). Schema and policies are under `supabase/` SQL files.
 
@@ -36,7 +36,7 @@ Supabase setup: ensure the referenced bucket exists and is public (or add storag
 - Portfolio: hero, profile, services, technologies, projects, testimonials, education/experience all persisted in Supabase tables.
 
 ## Deployment notes
-- Default GitHub Pages path `/react/` is configured in `vite.config.js` and `npm run deploy` (gh-pages). Update `base` if hosting elsewhere.
+- Default GitHub Pages path `/Edwin_portfolio/` is configured in `vite.config.js` and `npm run deploy` (gh-pages). Update `base` if hosting elsewhere.
 - Keep secrets out of git. Large binaries belong in `public/` or Supabase Storage.
 
 ## Dev tips

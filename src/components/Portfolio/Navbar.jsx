@@ -5,6 +5,7 @@ import { styles } from "../../styles";
 import { navLinks, services as defaultServices } from "./constants";
 import { useSupabaseQuery } from "../../supabase/hooks";
 import { logo, menu, close } from "../../assets";
+import { basePath } from "../../utils/basePath";
 
 const slugify = (value = "") =>
   value
@@ -63,7 +64,8 @@ const Navbar = () => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
-      window.history.replaceState(null, "", `/react#${id}`);
+      const hashUrl = basePath === "/" ? `#${id}` : `${basePath}#${id}`;
+      window.history.replaceState(null, "", hashUrl);
     }
   };
 
@@ -77,12 +79,12 @@ const Navbar = () => {
     setToggle(false);
 
     if (nav.path || nav.id === "service") {
-      navigate(nav.path || "/react/services/web-developer");
+      navigate(nav.path || "/services/web-developer");
       return;
     }
 
-    if (location.pathname !== "/react") {
-      navigate(`/react#${nav.id}`);
+    if (location.pathname !== "/") {
+      navigate(`/#${nav.id}`);
       return;
     }
 
@@ -92,7 +94,7 @@ const Navbar = () => {
   const handleServiceNavigate = (slug) => {
     setServiceOpen(false);
     setToggle(false);
-    navigate(`/react/services/${slug}`);
+    navigate(`/services/${slug}`);
   };
 
   useEffect(() => {
@@ -124,7 +126,7 @@ const Navbar = () => {
     >
       <div className='w-full flex justify-between items-center max-w-7xl mx-auto'>
         <Link
-          to='/react'
+          to='/'
           className='flex items-center gap-2'
           onClick={() => {
             setActive("");
@@ -177,7 +179,7 @@ const Navbar = () => {
             
           ))}
           <Link
-          to='/react/blog'
+          to='/blog'
             className={`${
               active === true ? "text-white" : "text-secondary"
             } hover:text-white text-[18px] font-medium cursor-pointer`}
@@ -245,7 +247,7 @@ const Navbar = () => {
               ))}
               <li>
                 <Link
-                  to='/react/blog'
+                  to='/blog'
                   className={`font-poppins font-medium cursor-pointer text-[16px] ${
                     active === 'Blog' ? 'text-white' : 'text-secondary'
                   }`}

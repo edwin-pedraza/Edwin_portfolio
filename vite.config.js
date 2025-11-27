@@ -4,6 +4,6 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => ({
   plugins: [react()],
-  // Develop at root, but build for GitHub Pages (/react/)
-  base: command === 'serve' ? '/' : '/Edwin_portfolio',
+  // Develop at root, but build for GitHub Pages (/Edwin_portfolio/)
+  base: command === 'serve' ? '/' : '/Edwin_portfolio/',
 }))

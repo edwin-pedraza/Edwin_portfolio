@@ -32,7 +32,7 @@ export const DEFAULT_BLOG_SETTINGS = Object.freeze({
   contactEmail: 'hello@example.com',
   contactLocation: 'Based in Australia. Working worldwide.',
   contactLinks: [
-    { label: 'Portfolio', url: '/react/' },
+    { label: 'Portfolio', url: '/' },
     { label: 'LinkedIn', url: 'https://linkedin.com/in/edwinpedraza' },
   ],
   // Portfolio-specific: mapping GLTF mesh names -> friendly hover labels

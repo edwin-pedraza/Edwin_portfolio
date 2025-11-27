@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import { withBase } from '../../../utils/basePath'
 
 export default function Footer({ blogSettings }) {
   const links = blogSettings?.contactLinks || []
@@ -12,8 +13,9 @@ export default function Footer({ blogSettings }) {
         <div className="flex flex-wrap gap-4">
           {links.map((item, idx) => {
             const label = (item?.label || '').trim()
-            const finalUrl = label.toLowerCase() === 'portfolio' ? '/react/' : (item?.url || '#')
-            const isExternal = /^https?:\/\//i.test(finalUrl)
+            const rawUrl = label.toLowerCase() === 'portfolio' ? '/' : (item?.url || '#')
+            const isExternal = /^https?:\/\//i.test(rawUrl)
+            const finalUrl = isExternal ? rawUrl : withBase(rawUrl)
             return (
               <a
                 key={idx}

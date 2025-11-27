@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../supabase/client'
+import { withBase } from '../../utils/basePath'
 import { logo } from '../../assets'
 import AdminEducation from './AdminEducation'
 import AdminExperience from './AdminExperience'
@@ -378,7 +379,7 @@ export default function Admin() {
       return
     }
 
-    const redirectTo = window.location.origin + '/react/admin'
+    const redirectTo = window.location.origin + withBase('/admin')
     const { error } = await supabase.auth.signInWithOtp({ email: normalizedEmail, options: { emailRedirectTo: redirectTo } })
     if (error) setMsg('Could not send login link'); else setMsg('Check your email for the login link')
     setSending(false)
