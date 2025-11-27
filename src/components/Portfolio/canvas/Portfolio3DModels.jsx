@@ -308,7 +308,12 @@ BlenderDeskScene.propTypes = {
 
 useGLTF.preload(DESK_MODEL_URL);
 
-export default function Portfolio3DModels({ height = 580, width = 700, modelScale = 1, deskLabels = [] }) {
+export default function Portfolio3DModels({
+  height = "clamp(360px, 75vw, 540px)",
+  width = "100%",
+  modelScale = 1,
+  deskLabels = [],
+}) {
   const sceneRef = useRef();
   const [overlayLabel, setOverlayLabel] = useState("");
   const [invalidMeshes, setInvalidMeshes] = useState([]);
@@ -344,7 +349,10 @@ export default function Portfolio3DModels({ height = 580, width = 700, modelScal
   const hasCustomLabels = labelMap.size > 0;
 
   return (
-    <div className="relative rounded-[32px] overflow-hidden" style={{ height, width: computedWidth }}>
+    <div
+      className="relative rounded-[32px] overflow-hidden"
+      style={{ height, width: computedWidth, maxWidth: "min(720px, 100%)" }}
+    >
       <div className="absolute top-4 right-4 z-10 pointer-events-auto">
         <ExportButton getObject={getExportObject} fileName={`${sanitize("blender desk")}.glb`} />
       </div>

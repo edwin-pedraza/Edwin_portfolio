@@ -34,17 +34,16 @@ const Hero = () => {
   const logoText = 'EDWIN - DEV - DATA'
 
   return (
-    <section className={`relative w-full h-[90vh] mx-auto`}>
+    <section className="relative w-full min-h-screen mx-auto overflow-hidden">
       <div
-        className={`${styles.paddingX} absolute inset-0 top-[120px]  max-w-7xl mx-auto flex flex-col sm:flex-row items-start gap-5`}
+        className={`${styles.paddingX} max-w-7xl mx-auto flex flex-col lg:flex-row items-start gap-10 pt-28 pb-16`}
       >
-        
-        <div className='flex flex-row sm:flex-col justify-center items-center mt-12 place-content-center absolute'>
-          <div className='w-5 h-5 rounded-full bg-[#915EFF]' />
-          <div className=' w-40 h-1 sm:h-80 sm:w-1  violet-gradient' />
+        <div className="hidden sm:flex flex-col justify-center items-center mt-4 sm:mt-12 mr-4">
+          <div className="w-5 h-5 rounded-full bg-[#915EFF]" />
+          <div className="w-1 h-40 sm:h-80 violet-gradient" />
         </div>
 
-        <div className="basis-1/2 my-14 mx-4 sm:my-14 sm:mx-10">
+        <div className="w-full lg:w-1/2 my-8 sm:my-14">
           <h1 className={`${styles.heroHeadText} text-white `}>
             Hi,{` I'm `}  <span className='text-fourth'> {displayName}</span>
           </h1>
@@ -97,7 +96,7 @@ const Hero = () => {
           
           
         </div>
-        <div className='flex-1 my-14 mx-4 sm:my-14 sm:mx-10 w-full max-w-[700px]'>
+        <div className='w-full lg:w-1/2 my-8 sm:my-14 lg:my-10 flex justify-center'>
           <Portfolio3DModels
             initialMode={initialMode}
             logoText={logoText}
