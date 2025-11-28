@@ -1,3 +1,4 @@
+/* eslint-env node */
 import { cpSync, existsSync, mkdirSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../supabase/client'
+import { useAutoLogout } from '../../supabase/hooks'
 import { withBase } from '../../utils/basePath'
 import { logo } from '../../assets'
 import AdminEducation from './AdminEducation'
@@ -210,6 +211,12 @@ export default function Admin() {
   const [settingsMsg, setSettingsMsg] = useState('')
   const [settingsError, setSettingsError] = useState('')
   const [sectionStats, setSectionStats] = useState({})
+
+  useAutoLogout({
+    timeoutMs: 30 * 60 * 1000,
+    redirectTo: withBase('/admin'),
+    isEnabled: Boolean(session),
+  })
 
   const sessionEmail = session?.user?.email?.toLowerCase() || ''
   const isSessionAuthorized = allowedAdminEmails.includes(sessionEmail)
