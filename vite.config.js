@@ -5,6 +5,7 @@ export default defineConfig(({ command }) => ({
   plugins: [react()],
   base: process.env.VITE_BASE_PATH ?? (command === 'serve' ? '/' : '/Edwin_portfolio/'),
   build: {
+    modulePreload: false,
     rollupOptions: {
       output: {
         manualChunks: {

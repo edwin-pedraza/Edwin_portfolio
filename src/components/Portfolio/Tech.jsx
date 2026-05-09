@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { SectionWrapper } from "./hoc";
 import { technologies } from "./constants";
 import { useSupabaseQuery } from "../../supabase/hooks";
-import { BallCanvas } from "./canvas";
+
+const BallCanvas = lazy(() => import("./canvas/Ball"));
 
 function canUseWebGL() {
   if (typeof window === 'undefined') return false
@@ -31,7 +32,13 @@ const Tech = () => {
       {techList.map((tech) => (
         <div key={tech.name} className='w-24 h-24 sm:w-28 sm:h-28'>
           {webgl ? (
-            <BallCanvas icon={tech.icon} />
+            <Suspense fallback={
+              <div className='w-full h-full rounded-full bg-black-200 flex items-center justify-center'>
+                {tech.icon && <img src={tech.icon} alt={tech.name} className='w-3/4 h-3/4 object-contain' />}
+              </div>
+            }>
+              <BallCanvas icon={tech.icon} />
+            </Suspense>
           ) : (
             <div className='w-full h-full rounded-full bg-black-200 flex items-center justify-center'>
               {tech.icon && <img src={tech.icon} alt={tech.name} className='w-3/4 h-3/4 object-contain' />}

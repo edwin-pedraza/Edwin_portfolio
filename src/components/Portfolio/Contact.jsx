@@ -1,12 +1,12 @@
-import { useRef, useState } from "react";
+import { lazy, Suspense, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import emailjs from "@emailjs/browser";
 
 import { styles } from "../../styles";
-import { EarthCanvas } from "./canvas";
 import { SectionWrapper } from "./hoc";
 import { slideIn, fadeIn } from "./utils/motion";
 
+const EarthCanvas = lazy(() => import("./canvas/Earth"));
 
 const Contact = () => {
   const formRef = useRef();
@@ -126,7 +126,9 @@ const Contact = () => {
         variants={fadeIn("", "", 0.4, 1)}
         className=' xl:h-auto xl:flex-1 md:h-[550px] h-[350px]'
       >
-        <EarthCanvas />
+        <Suspense fallback={<div className="h-full w-full" />}>
+          <EarthCanvas />
+        </Suspense>
       </motion.div>
     </div>
   );

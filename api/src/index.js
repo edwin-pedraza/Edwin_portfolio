@@ -63,8 +63,33 @@ app.use('/api', (_, res) => res.status(404).json({ error: 'Not found' }))
 
 // Serve React SPA — must be AFTER /api routes
 const publicDir = path.join(__dirname, '../public')
+const assetsDir = path.join(publicDir, 'assets')
+
+function servePrecompressedAsset(req, res, next) {
+  if (!/\bgzip\b/.test(req.headers['accept-encoding'] || '')) return next()
+  if (!/\.(js|css)$/.test(req.path)) return next()
+
+  const requestedPath = path.normalize(req.path).replace(/^(\.\.[/\\])+/, '')
+  const filePath = path.join(assetsDir, requestedPath)
+  const gzipPath = `${filePath}.gz`
+
+  if (!filePath.startsWith(assetsDir) || !fs.existsSync(gzipPath)) return next()
+
+  res.setHeader('Content-Encoding', 'gzip')
+  res.setHeader('Vary', 'Accept-Encoding')
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+  res.type(path.extname(filePath))
+  res.sendFile(gzipPath)
+}
+
 if (fs.existsSync(publicDir)) {
-  app.use(express.static(publicDir))
+  app.use('/assets', servePrecompressedAsset, express.static(assetsDir, {
+    maxAge: '1y',
+    immutable: true,
+  }))
+  app.use(express.static(publicDir, {
+    maxAge: '1h',
+  }))
   app.get('*', (_, res) => res.sendFile(path.join(publicDir, 'index.html')))
 }
 

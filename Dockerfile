@@ -27,7 +27,9 @@ COPY api/entrypoint.sh ./entrypoint.sh
 # React built files
 COPY --from=frontend /app/dist ./public
 
-RUN mkdir -p uploads && chmod +x entrypoint.sh
+RUN find ./public/assets -type f \( -name '*.js' -o -name '*.css' \) -exec gzip -9 -k {} \; \
+  && mkdir -p uploads \
+  && chmod +x entrypoint.sh
 
 EXPOSE 3001
 ENV NODE_ENV=production

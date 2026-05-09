@@ -1,13 +1,16 @@
 import { motion } from "framer-motion";
+import { lazy, Suspense } from "react";
 
 import { styles } from "../../styles";
-import { Portfolio3DModels, StarsCanvas } from "./canvas";
 import { useTypewriter, Cursor } from "react-simple-typewriter";
 import { FaLinkedinIn, FaReact } from "react-icons/fa";
 import { SiTailwindcss, SiSupabase } from "react-icons/si";
 import { BsGithub } from "react-icons/bs";
 import { useSupabaseQuery, parseList } from "../../supabase/hooks";
 import useBlogSettings from "../blog/useBlogSettings";
+
+const Portfolio3DModels = lazy(() => import("./canvas/Portfolio3DModels"));
+const StarsCanvas = lazy(() => import("./canvas/Stars"));
 
 const Hero = () => {
 
@@ -97,13 +100,17 @@ const Hero = () => {
           
         </div>
         <div className='w-full lg:w-1/2 my-8 sm:my-14 lg:my-10 flex justify-center'>
-          <Portfolio3DModels
-            initialMode={initialMode}
-            logoText={logoText}
-            deskLabels={blogSettings?.deskLabels}
-          />
+          <Suspense fallback={<div className="h-[clamp(360px,75vw,540px)] w-full max-w-[720px]" />}>
+            <Portfolio3DModels
+              initialMode={initialMode}
+              logoText={logoText}
+              deskLabels={blogSettings?.deskLabels}
+            />
+          </Suspense>
         </div>
-        <StarsCanvas/>
+        <Suspense fallback={null}>
+          <StarsCanvas/>
+        </Suspense>
       </div>
 
      

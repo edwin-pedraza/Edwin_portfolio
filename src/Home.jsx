@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { 
@@ -8,9 +8,10 @@ import {
   Navbar,
   Tech,
   Works,
-  StarsCanvas,
 } from './components/Portfolio';
 import Resume from './components/Portfolio/Resume';
+
+const StarsCanvas = lazy(() => import('./components/Portfolio/canvas/Stars'));
 
 const Home =() => {
   const location = useLocation();
@@ -45,7 +46,9 @@ const Home =() => {
       </div>
       <div className='relative'>
         <Contact />
-        <StarsCanvas />
+        <Suspense fallback={null}>
+          <StarsCanvas />
+        </Suspense>
       </div>
     </>
     
