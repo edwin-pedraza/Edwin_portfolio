@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../../supabase/client'
+import { supabase } from '../../api/compat'
 import ImageUploader from './ImageUploader'
 
 export default function AdminProfile() {

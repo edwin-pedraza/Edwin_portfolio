@@ -1,58 +1,35 @@
 import { useState } from 'react'
-import { supabase } from '../../supabase/client'
+import { getToken } from '../../api/client'
 
-const DEFAULT_BUCKET = import.meta.env.VITE_SUPABASE_BUCKET || 'portfolio'
+const API_URL = import.meta.env.VITE_API_URL || '/api'
 
-export default function ImageUploader({ label = 'Image', bucket = DEFAULT_BUCKET, pathPrefix = 'uploads', value, onChange, deletePrevious = false }) {
+export default function ImageUploader({ label = 'Image', bucket = 'portfolio', pathPrefix = 'uploads', value, onChange, deletePrevious = false }) {
   const [file, setFile] = useState(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
-
-  function extractObjectPathFromPublicUrl(url) {
-    try {
-      const u = new URL(url)
-      const marker = '/object/public/'
-      const i = u.pathname.indexOf(marker)
-      if (i === -1) return null
-      const rest = u.pathname.slice(i + marker.length)
-      const parts = rest.split('/')
-      const bkt = parts.shift()
-      if (!bkt || parts.length === 0) return null
-      // Only delete if it belongs to the same bucket
-      if (bucket && bkt !== bucket) return null
-      return parts.join('/')
-    } catch (_) {
-      return null
-    }
-  }
 
   async function handleUpload() {
     if (!file) return
     setBusy(true)
     setMsg('')
-    const ext = file.name.split('.').pop()
-    const filePath = `${pathPrefix}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-    const { error: upErr } = await supabase.storage.from(bucket).upload(filePath, file, { upsert: true, cacheControl: '0' })
-    if (upErr) {
-      setMsg(`Upload failed: ${upErr.message}`)
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      const res = await fetch(`${API_URL}/upload/${bucket}/${pathPrefix}`, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + getToken() },
+        body: form,
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Upload failed')
+      if (onChange) onChange(data.url)
+      setMsg('Uploaded — remember to click Update to save')
+    } catch (err) {
+      setMsg('Upload failed: ' + err.message)
+    } finally {
       setBusy(false)
-      return
+      setFile(null)
     }
-    const { data } = supabase.storage.from(bucket).getPublicUrl(filePath)
-    const url = data?.publicUrl
-    const cacheBusted = url ? `${url}?v=${Date.now()}` : url
-    if (cacheBusted && onChange) onChange(cacheBusted)
-
-    // Optionally delete previous object in this bucket
-    if (deletePrevious && value) {
-      const prevPath = extractObjectPathFromPublicUrl(value)
-      if (prevPath) {
-        await supabase.storage.from(bucket).remove([prevPath])
-      }
-    }
-    setMsg('Uploaded — remember to click Update to save')
-    setBusy(false)
-    setFile(null)
   }
 
   return (
@@ -68,10 +45,9 @@ export default function ImageUploader({ label = 'Image', bucket = DEFAULT_BUCKET
       )}
       <div className="flex items-center gap-2">
         <input type="file" accept="image/*" onChange={(e)=>setFile(e.target.files?.[0]||null)} className="text-sm" />
-        <button type="button" disabled={!file || busy} onClick={handleUpload} className="rounded-full bg-emerald-600 px-3 py-1.5 text-white shadow-sm disabled:bg-emerald-600/50">{busy ? 'Uploading…' : 'Upload to Storage'}</button>
+        <button type="button" disabled={!file || busy} onClick={handleUpload} className="rounded-full bg-emerald-600 px-3 py-1.5 text-white shadow-sm disabled:bg-emerald-600/50">{busy ? 'Uploading…' : 'Upload'}</button>
         {msg && <span className="text-xs text-slate-500">{msg}</span>}
       </div>
-      <div className="text-xs opacity-70">Uses Supabase Storage bucket “{bucket}”. Ensure it exists and is public (or add policies).</div>
     </div>
   )
 }

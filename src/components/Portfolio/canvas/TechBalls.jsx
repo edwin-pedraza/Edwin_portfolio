@@ -44,8 +44,8 @@ export default function TechBalls({ items = [], columns = 6, cell = 3.2, heightP
   return (
     <div className="w-full" style={{ height: canvasHeight }}>
       <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 18], fov: 45 }}>
-        <Suspense fallback={<CanvasLoader />}> 
-          <Environment preset="city" />
+        <Environment preset="city" />
+        <Suspense fallback={<CanvasLoader />}>
           {items.map((it, i) => (
             <group key={it.name || i} position={positions[i]}>
               <BallNode icon={it.icon} />

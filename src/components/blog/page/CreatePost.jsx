@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../../../supabase/client'
+import { supabase } from '../../../api/compat'
 import ImageUploader from '../../admin/ImageUploader'
 
 function slugify(value = '') {

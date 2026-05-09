@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../../supabase/client'
+import { supabase } from '../../api/compat'
 import { DEFAULT_BLOG_SETTINGS, normalizeBlogSettings } from './themeUtils'
 
 const HERO_DEFAULTS = {

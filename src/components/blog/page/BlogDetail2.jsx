@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { supabase } from '../../../supabase/client'
+import { supabase } from '../../../api/compat'
+import { api } from '../../../api/client'
 import sanitizeHtml from '../../../utils/sanitizeHtml'
 import useBlogSettings from '../useBlogSettings'
 import ImageUploader from '../../admin/ImageUploader'
@@ -128,32 +129,15 @@ useEffect(() => {
         setTechInput(techTags.join(', '))
 
         if (data.published_at) {
-          const { data: prev } = await supabase
-            .from('post')
-            .select('id,title,cover_url')
-            .lt('published_at', data.published_at)
-            .order('published_at', { ascending: false })
-            .limit(1)
-          const { data: next } = await supabase
-            .from('post')
-            .select('id,title,cover_url')
-            .gt('published_at', data.published_at)
-            .order('published_at', { ascending: true })
-            .limit(1)
-          setPrevNext({ prev: prev?.[0] || null, next: next?.[0] || null })
+          const pn = await api.get(`/post/prev-next?publishedAt=${encodeURIComponent(data.published_at)}`).catch(() => ({}))
+          setPrevNext({ prev: pn?.prev || null, next: pn?.next || null })
         } else {
           setPrevNext({ prev: null, next: null })
         }
 
         if (data.tag) {
-          const { data: rel } = await supabase
-            .from('post')
-            .select('id,title,excerpt,cover_url,tag')
-            .eq('tag', data.tag)
-            .neq('id', data.id)
-            .order('published_at', { ascending: false })
-            .limit(3)
-          setRelated(rel || [])
+          const rel = await api.get(`/post/related/${encodeURIComponent(data.tag)}?excludeId=${data.id}&limit=3`).catch(() => [])
+          setRelated(Array.isArray(rel) ? rel : [])
         } else {
           setRelated([])
         }
@@ -271,7 +255,7 @@ useEffect(() => {
     >
       <div className="relative w-full">
         {post.cover_url && (
-          <img src={post.cover_url} alt={post.title} className="h-[260px] w-full bg-slate-900/5 object-contain md:h-[360px]" />
+          <img src={post.cover_url} alt={post.title} className="h-[260px] w-full object-cover md:h-[360px]" />
         )}
         <div className="absolute inset-0" style={{ backgroundImage: heroTheme.overlay }} />
         <div className="absolute inset-x-0 bottom-6 px-6 md:px-10">

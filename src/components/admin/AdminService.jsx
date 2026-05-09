@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { supabase } from '../../supabase/client'
+import { supabase } from '../../api/compat'
 import ImageUploader from './ImageUploader'
 
 const defaultForm = {

@@ -15,6 +15,12 @@ dist-ssr
 # Environment variables
 .env
 .env.local
+
+# Migration seed data (large binaries, not needed in source)
+migration/images/
+
+# Docker uploads volume (runtime data)
+uploads/
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

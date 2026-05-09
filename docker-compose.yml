@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: portfolio
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-portfolio_dev}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      args:
+        VITE_API_URL: /api
+        VITE_ADMIN_EMAILS: ${ADMIN_EMAIL:-edw.pedraza@gmail.com}
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3001}:3001"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: portfolio
+      DB_USER: portfolio
+      DB_PASSWORD: ${DB_PASSWORD:-portfolio_dev}
+      JWT_SECRET: ${JWT_SECRET:-changeme_set_in_prod}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-edw.pedraza@gmail.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme123}
+      UPLOADS_DIR: /app/uploads
+      RUN_MIGRATE: "true"
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  uploads:

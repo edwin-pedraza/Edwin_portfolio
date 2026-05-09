@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { supabase } from '../../supabase/client'
-import { useAutoLogout } from '../../supabase/hooks'
+import { api, getToken, setToken, clearToken } from '../../api/client'
+import { useAutoLogout } from '../../api/hooks'
 import { withBase } from '../../utils/basePath'
 import { logo } from '../../assets'
 import AdminEducation from './AdminEducation'
@@ -199,7 +199,8 @@ export default function Admin() {
   const [session, setSession] = useState(null)
   const [tab, setTab] = useState('dashboard')
   const [space, setSpace] = useState(() => localStorage.getItem('admin-space') || 'portfolio')
-  const [email, setEmail] = useState('')
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
   const [msg, setMsg] = useState('')
   const [sending, setSending] = useState(false)
   const [theme, setTheme] = useState('light')
@@ -254,9 +255,11 @@ export default function Admin() {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession))
-    return () => authListener.subscription.unsubscribe()
+    const token = getToken()
+    if (!token) return setSession(null)
+    api.get('/auth/me').then(({ user }) => {
+      setSession(user ? { user } : null)
+    }).catch(() => { clearToken(); setSession(null) })
   }, [])
 
   useEffect(() => {
@@ -271,8 +274,7 @@ export default function Admin() {
       try {
         setSettingsLoading(true)
         setSettingsError('')
-        const { data, error } = await supabase.from('settings').select('id, theme, blog, theme_color').limit(1)
-        if (error) throw error
+        const data = await api.get('/settings')
         const row = data?.[0]
         if (!canceled) {
           if (row) {
@@ -303,59 +305,33 @@ export default function Admin() {
   useEffect(() => {
     if (!session || !isSessionAuthorized) return
     let canceled = false
-    async function countRows(table) {
-      try {
-        const { count } = await supabase.from(table).select('id', { count: 'exact', head: true })
-        return count || 0
-      } catch (_) { return 0 }
+    async function fetchTable(table) {
+      try { return await api.get('/' + table) } catch { return [] }
     }
-    async function firstImage(table, columns = 'image_url') {
-      try {
-        const { data } = await supabase
-          .from(table)
-          .select(`id, ${columns}`)
-          .order('created_at', { ascending: false })
-          .limit(1)
-        const row = data?.[0]
-        if (!row) return ''
-        // prefer first non-empty field among possible names
-        const field = ['image_url','cover_url','icon_url','photo_url','banner_url']
-          .find((k) => Object.prototype.hasOwnProperty.call(row, k) && row[k])
-        return (field && row[field]) || ''
-      } catch (_) { return '' }
+    function firstImg(rows) {
+      const row = rows[rows.length - 1]
+      const field = ['image_url','cover_url','icon_url','photo_url'].find(k => row?.[k])
+      return (field && row[field]) || ''
     }
     async function loadOverviewStats() {
-      const [
-        profileRow,
-        projectsCount, projectsPreview,
-        postsCount, postsPreview,
-        techCount, techPreview,
-        serviceCount, servicePreview,
-        eduCount,
-        expCount,
-        testiCount,
-      ] = await Promise.all([
-        supabase.from('profile').select('full_name, photo_url').limit(1).maybeSingle(),
-        countRows('project'), firstImage('project'),
-        countRows('post'), firstImage('post', 'cover_url'),
-        countRows('technology'), firstImage('technology', 'icon_url'),
-        countRows('service'), firstImage('service', 'icon_url'),
-        countRows('education'),
-        countRows('experience'),
-        countRows('testimonial'),
-      ])
+      const [profiles, projects, posts, technologies, services, educations, experiences, testimonials] =
+        await Promise.all([
+          fetchTable('profile'), fetchTable('project'), fetchTable('post'),
+          fetchTable('technology'), fetchTable('service'),
+          fetchTable('education'), fetchTable('experience'), fetchTable('testimonial'),
+        ])
 
       if (canceled) return
-      const profile = profileRow?.data || null
+      const profile = profiles[0] || null
       setSectionStats({
-        profile: { count: profile ? 1 : 0, previewUrl: profile?.photo_url || '', subtitle: profile?.full_name || '' },
-        project: { count: projectsCount, previewUrl: projectsPreview },
-        posts: { count: postsCount, previewUrl: postsPreview },
-        technology: { count: techCount, previewUrl: techPreview },
-        service: { count: serviceCount, previewUrl: servicePreview },
-        education: { count: eduCount },
-        experience: { count: expCount },
-        testimonial: { count: testiCount },
+        profile:    { count: profile ? 1 : 0, previewUrl: profile?.photo_url || '', subtitle: profile?.full_name || '' },
+        project:    { count: projects.length,     previewUrl: firstImg(projects) },
+        posts:      { count: posts.length,        previewUrl: firstImg(posts) },
+        technology: { count: technologies.length, previewUrl: firstImg(technologies) },
+        service:    { count: services.length,     previewUrl: firstImg(services) },
+        education:  { count: educations.length },
+        experience: { count: experiences.length },
+        testimonial:{ count: testimonials.length },
       })
     }
     loadOverviewStats()
@@ -365,32 +341,26 @@ export default function Admin() {
   useEffect(() => {
     if (session && !isSessionAuthorized) {
       setMsg('This account is not authorized to access the admin console')
-      supabase.auth.signOut()
+      clearToken()
+      setSession(null)
     }
   }, [session, isSessionAuthorized])
 
-  async function sendMagicLink() {
+  async function handleLogin() {
     setSending(true)
     setMsg('')
-    const normalizedEmail = email.trim().toLowerCase()
-    const publicSiteUrl = (import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/$/, '')
-
-    if (!allowedAdminEmails.length) {
-      setMsg('Admin access is not configured. Set VITE_ADMIN_EMAILS and reload the page.')
+    try {
+      const { token, user } = await api.post('/auth/login', {
+        email: loginEmail.trim().toLowerCase(),
+        password: loginPassword,
+      })
+      setToken(token)
+      setSession({ user })
+    } catch (err) {
+      setMsg(err?.error || 'Invalid credentials')
+    } finally {
       setSending(false)
-      return
     }
-
-    if (!allowedAdminEmails.includes(normalizedEmail)) {
-      setMsg('This email is not authorized to access the admin console')
-      setSending(false)
-      return
-    }
-
-    const redirectTo = publicSiteUrl + withBase('/admin')
-    const { error } = await supabase.auth.signInWithOtp({ email: normalizedEmail, options: { emailRedirectTo: redirectTo } })
-    if (error) setMsg('Could not send login link'); else setMsg('Check your email for the login link')
-    setSending(false)
   }
 
   function handlePreviewColors(partialColors) {
@@ -413,22 +383,12 @@ export default function Admin() {
     setSettingsError('')
 
     try {
-      const payloadText = serializeSettingsPayload({ theme: normalized, blog: blogSettings })
       if (settingsRowId) {
-        const { error } = await supabase
-          .from('settings')
-          .update({ theme: normalized, blog: blogSettings, theme_color: payloadText })
-          .eq('id', settingsRowId)
-        if (error) throw error
+        await api.put('/settings/' + settingsRowId, { theme: normalized, blog: blogSettings })
         setSettingsMsg('Theme updated')
       } else {
-        const { data, error } = await supabase
-          .from('settings')
-          .insert({ theme: normalized, blog: blogSettings, theme_color: payloadText })
-          .select('id')
-          .single()
-        if (error) throw error
-        if (data?.id) setSettingsRowId(data.id)
+        const row = await api.post('/settings', { theme: normalized, blog: blogSettings })
+        if (row?.id) setSettingsRowId(row.id)
         setSettingsMsg('Theme saved')
       }
     } catch (error) {
@@ -446,22 +406,12 @@ export default function Admin() {
     setSettingsError('')
 
     try {
-      const payloadText = serializeSettingsPayload({ theme: themeColors, blog: normalized })
       if (settingsRowId) {
-        const { error } = await supabase
-          .from('settings')
-          .update({ theme: themeColors, blog: normalized, theme_color: payloadText })
-          .eq('id', settingsRowId)
-        if (error) throw error
+        await api.put('/settings/' + settingsRowId, { theme: themeColors, blog: normalized })
         setSettingsMsg('Blog settings updated')
       } else {
-        const { data, error } = await supabase
-          .from('settings')
-          .insert({ theme: themeColors, blog: normalized, theme_color: payloadText })
-          .select('id')
-          .single()
-        if (error) throw error
-        if (data?.id) setSettingsRowId(data.id)
+        const row = await api.post('/settings', { theme: themeColors, blog: normalized })
+        if (row?.id) setSettingsRowId(row.id)
         setSettingsMsg('Blog settings saved')
       }
     } catch (error) {
@@ -511,28 +461,32 @@ export default function Admin() {
           <div className="flex flex-col items-center text-center mb-8">
             <img src={logo} alt="Portfolio logo" className="w-16 h-16 mb-4 rounded-2xl border border-white/20 shadow-lg" />
             <h1 className="text-2xl font-light tracking-[0.2em] uppercase">Admin Login</h1>
-            <p className="mt-3 text-sm font-light text-white/80 max-w-xs">Enter your email to receive a magic login link.</p>
-            {!allowedAdminEmails.length && (
-              <p className="mt-4 text-xs text-amber-200/80">
-                Admin access is disabled until VITE_ADMIN_EMAILS is configured with your authorized address.
-              </p>
-            )}
+            <p className="mt-3 text-sm font-light text-white/80 max-w-xs">Sign in with your admin credentials.</p>
           </div>
           <label className="text-xs uppercase tracking-wide text-white/60 mb-2 block">Email address</label>
           <input
             type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            value={loginEmail}
+            onChange={(e) => setLoginEmail(e.target.value)}
             placeholder="you@example.com"
             className="w-full px-4 py-3 rounded-xl bg-white/15 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:bg-white/20 transition-all"
             autoFocus
           />
+          <label className="text-xs uppercase tracking-wide text-white/60 mt-4 mb-2 block">Password</label>
+          <input
+            type="password"
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+            placeholder="••••••••"
+            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+            className="w-full px-4 py-3 rounded-xl bg-white/15 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:bg-white/20 transition-all"
+          />
           <button
-            disabled={!email || sending || !allowedAdminEmails.length}
-            onClick={sendMagicLink}
+            disabled={!loginEmail || !loginPassword || sending}
+            onClick={handleLogin}
             className="mt-6 w-full px-4 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 transition-colors disabled:bg-sky-500/40 disabled:cursor-not-allowed font-medium tracking-wide uppercase"
           >
-            {sending ? 'Sending...' : 'Send link'}
+            {sending ? 'Signing in...' : 'Sign in'}
           </button>
           {msg && (
             <div className={`mt-6 text-sm font-light text-center ${isError ? 'text-rose-300' : 'text-emerald-300'}`}>{msg}</div>
@@ -685,7 +639,7 @@ export default function Admin() {
                         <p className="font-semibold truncate max-w-[200px] sm:max-w-[260px]" title={email}>{email}</p>
                       </div>
                       <button
-                        onClick={() => supabase.auth.signOut()}
+                        onClick={() => { clearToken(); setSession(null) }}
                         className="inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold shadow-sm transition hover:opacity-90 focus:outline-none focus-visible:ring-2"
                         style={{
                           backgroundColor: accent.button,

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from './client'
+import { clearToken } from '../api/client'
 
 export function useSupabaseQuery(table, { select = '*', orderBy, ascending = true } = {}) {
   const [data, setData] = useState(null)
@@ -55,8 +56,8 @@ export function useAutoLogout({ timeoutMs = 30 * 60 * 1000, redirectTo, isEnable
     }
   }, [])
 
-  const handleLogout = useCallback(async () => {
-    await supabase.auth.signOut()
+  const handleLogout = useCallback(() => {
+    clearToken()
     if (redirectTo) {
       window.location.href = redirectTo
     }
