@@ -253,15 +253,15 @@ useEffect(() => {
         backgroundColor: accent.lightShell,
       }}
     >
-      <div className="relative w-full">
+      <div className="relative w-full min-h-[260px] md:min-h-[360px]">
         {post.cover_url && (
-          <img src={post.cover_url} alt={post.title} className="h-[260px] w-full object-cover md:h-[360px]" />
+          <img src={post.cover_url} alt={post.title} className="absolute inset-0 h-full w-full object-cover" />
         )}
-        <div className="absolute inset-0" style={{ backgroundImage: heroTheme.overlay }} />
+        <div className="absolute inset-0" style={{ backgroundImage: post.cover_url ? heroTheme.overlay : `linear-gradient(to top, ${heroTheme.cardBg}, ${heroTheme.cardBg})` }} />
         <div className="absolute inset-x-0 bottom-6 px-6 md:px-10">
           <div className="mx-auto max-w-5xl">
             <div
-              className="inline-flex w-full max-w-3xl flex-col gap-4 rounded-3xl border px-6 py-5 text-white backdrop-blur"
+              className="flex w-full flex-col gap-4 rounded-3xl border px-6 py-5 text-white backdrop-blur"
               style={{ backgroundColor: heroTheme.cardBg, borderColor: heroTheme.cardBorder, boxShadow: heroTheme.cardShadow }}
             >
               {categoryTags.length > 0 && (

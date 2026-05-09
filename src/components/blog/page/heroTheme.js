@@ -11,7 +11,7 @@ export function buildHeroTheme(themeColors = {}, accentBase = DEFAULT_ACCENT) {
   const cardRgb = hexToRgb(cardHex) || overlayRgb
   const chipRgb = hexToRgb(chipHex) || cardRgb
 
-  const overlay = `linear-gradient(118deg, ${toRgba(overlayRgb, 0.92)} 0%, ${toRgba(overlayRgb, 0.55)} 45%, transparent 100%)`
+  const overlay = `linear-gradient(to top, ${toRgba(overlayRgb, 0.92)} 0%, ${toRgba(overlayRgb, 0.55)} 50%, transparent 85%)`
   const cardBg = toRgba(cardRgb, 0.82)
   const cardBorder = toRgba(cardRgb, 0.28)
   const cardShadow = `0 40px 60px -35px ${toRgba(cardRgb, 0.65)}`
