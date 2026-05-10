@@ -4,6 +4,9 @@ import { requireAuth } from '../middleware/auth.js'
 
 const router = Router()
 
+const serializeVal = (v) =>
+  Array.isArray(v) || (v !== null && typeof v === 'object') ? JSON.stringify(v) : v
+
 router.get('/', async (req, res) => {
   try {
     const orderBy = req.query.orderBy || 'published_at'
@@ -54,7 +57,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', requireAuth, async (req, res) => {
   try {
     const keys = Object.keys(req.body)
-    const vals = Object.values(req.body)
+    const vals = Object.values(req.body).map(serializeVal)
     const cols = keys.map(k => `"${k}"`).join(', ')
     const phs = keys.map((_, i) => `$${i + 1}`).join(', ')
     const rows = await query(`INSERT INTO post (${cols}) VALUES (${phs}) RETURNING id`, vals)
@@ -67,7 +70,7 @@ router.post('/', requireAuth, async (req, res) => {
 router.put('/:id', requireAuth, async (req, res) => {
   try {
     const keys = Object.keys(req.body)
-    const vals = Object.values(req.body)
+    const vals = Object.values(req.body).map(serializeVal)
     const sets = keys.map((k, i) => `"${k}" = $${i + 1}`).join(', ')
     const rows = await query(
       `UPDATE post SET ${sets} WHERE id = $${keys.length + 1} RETURNING id`,

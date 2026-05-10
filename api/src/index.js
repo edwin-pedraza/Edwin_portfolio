@@ -18,6 +18,7 @@ import uploadRoutes from './routes/upload.js'
 import crudRouter from './routes/crud.js'
 
 const app = express()
+app.set('trust proxy', 1)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }))
